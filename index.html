@@ -427,14 +427,14 @@
         }
 
         // Tree Light Effect
+        let lightEffectInterval; // Add this line outside the function
+
         function toggleLightEffect() {
             const lightButton = document.querySelector('button[onclick="toggleLightEffect()"]');
             isLightEffectActive = !isLightEffectActive;
-            
+
             if (isLightEffectActive) {
                 lightButton.classList.add('effect-active');
-                startTreeLightEffect
-                () {
                 lightEffectInterval = setInterval(() => {
                     colors['0'] = colors['0'] === '#2ecc71' ? '#27ae60' : '#2ecc71';
                     colors['1'] = colors['1'] === '#e74c3c' ? '#c0392b' : '#e74c3c';
