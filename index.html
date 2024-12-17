@@ -148,7 +148,7 @@
             color: #ddd;
             min-height: 20px;
         }
-        </style> 
+    </style>
 </head>
 <body>
     <canvas id="treeCanvas"></canvas>
@@ -193,6 +193,7 @@
             <button class="effect-button" onclick="toggleSnowfall()">❄️ Snowfall</button>
             <button class="effect-button" onclick="toggleGlitterEffect()">🌟 Glitter</button>
             <button class="effect-button" onclick="toggleColorWave()">🌈 Color Wave</button>
+            <button class="effect-button" onclick="toggleOrnamentSparkle()">✨ Ornament Sparkle</button>
             <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
         </div>
     </div>
@@ -276,13 +277,16 @@
         // Ornament placement tracking
         const ornaments = [];
         const usedSymbols = new Set();
+        let ornamentColors = {};
 
         // Effect tracking variables
         let isSnowfallActive = false;
         let isLightEffectActive = false;
         let isSparkleEffectActive = false;
         let isGlitterEffectActive = false;
+        let isOrnamentSparkleActive = false;
         let colorWaveInterval = null;
+        let ornamentSparkleInterval = null;
 
         // Snowflakes and glitter arrays
         const snowflakes = [];
@@ -384,6 +388,7 @@
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
 
+            // Draw the tree
             for (let i = 0; i < treeData.length; i++) {
                 const row = treeData[i];
                 let x = xCenter - (row.length * FONT_SIZE / 4);
@@ -401,28 +406,46 @@
 
             // Draw ornaments
             ornaments.forEach(ornament => {
-                treeCtx.fillStyle = 'white';
-                treeCtx.font = '15px Arial';
-                treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
+              treeCtx.fillStyle = ornamentColors[ornament.symbol] || "white"; // Use specific color for each ornament
+              if (isOrnamentSparkleActive) {
+                // Apply sparkle effect if active
+                treeCtx.globalAlpha = Math.random() * 0.5 + 0.5; // Varying opacity for sparkle effect
+              }
+              treeCtx.font = "15px Arial";
+              treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
+              treeCtx.globalAlpha = 1; // Reset opacity
             });
         }
 
         // Function to draw Santa
-          function drawSanta() {
-            const xCenter = treeCanvas.width / 2;
-            const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
-            const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
-            const lineHeight = FONT_SIZE * 0.85;
+        function drawSanta() {
+          const xCenter = treeCanvas.width / 2;
+          const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
+          const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
+          const lineHeight = FONT_SIZE * 0.85;
 
-            for (let i = 0; i < santaData.length; i++) {
-              const row = santaData[i];
-              let x = xCenter - (row.length * FONT_SIZE / 4);
-              const y = yStart + i * lineHeight;
+          for (let i = 0; i < santaData.length; i++) {
+            const row = santaData[i];
+            let x = xCenter - (row.length * FONT_SIZE / 4);
+            const y = yStart + i * lineHeight;
 
-              for (let j = 0; j < row.length; j++) {
-                const char = row[j];
-                treeCtx.fillStyle = "white"; // Default color for Santa
+            for (let j = 0; j < row.length; j++) {
+              const char = row[j];
+              treeCtx.fillStyle = "white"; // Default color for Santa
 
+              // Check for color mode effects
+              if (colorModeInterval) {
+                if (char === "." || char === "'") {
+                  treeCtx.fillStyle = colors["0"]; // Use color for '0'
+                } else if (
+                  char === "/" ||
+                  char === "\\" ||
+                  char === "|" ||
+                  char === "_"
+                ) {
+                  treeCtx.fillStyle = colors["1"]; // Use color for '1'
+                }
+              } else {
                 // Color specific parts of Santa
                 if (char === "/" || char === "\\") {
                   treeCtx.fillStyle = "#e74c3c"; // Red for hat and shoes
@@ -431,13 +454,15 @@
                 } else if (char === "." || char === "'") {
                   treeCtx.fillStyle = "pink"; // Pink for cheeks
                 }
-                if (char !== " ") {
-                  treeCtx.fillText(char, x, y);
-                }
-                x += FONT_SIZE / 2;
               }
+
+              if (char !== " ") {
+                treeCtx.fillText(char, x, y);
+              }
+              x += FONT_SIZE / 2;
             }
           }
+        }
 
         // Ornament placement
         function generateSymbolButtons() {
@@ -480,7 +505,30 @@
                 ornaments.push({ x, y, symbol });
                 usedSymbols.add(symbol);
                 decorationInfo.textContent = `${symbol} placed at row ${randomRow + 1}!`;
+                
+                // Assign a random color to the new ornament
+                ornamentColors[symbol] =
+                  "#" + Math.floor(Math.random() * 16777215).toString(16); // Generate random hex color
+
                 drawTree();
+            }
+        }
+        
+        function toggleOrnamentSparkle() {
+            const ornamentSparkleButton = document.querySelector(
+              'button[onclick="toggleOrnamentSparkle()"]'
+            );
+            isOrnamentSparkleActive = !isOrnamentSparkleActive;
+
+            if (isOrnamentSparkleActive) {
+              ornamentSparkleButton.classList.add("effect-active");
+              ornamentSparkleInterval = setInterval(() => {
+                drawTree(); // Redraw the tree to update ornament sparkle effect
+              }, 500); // Adjust the interval for faster/slower sparkle
+            } else {
+              ornamentSparkleButton.classList.remove("effect-active");
+              clearInterval(ornamentSparkleInterval);
+              drawTree(); // Redraw the tree to remove sparkle effect
             }
         }
 
@@ -737,6 +785,11 @@
             // Color Wave
             if (colorWaveInterval) {
                 toggleColorWave();
+            }
+
+            // Ornament Sparkle
+            if (isOrnamentSparkleActive) {
+              toggleOrnamentSparkle();
             }
             
             // Reset color mode
