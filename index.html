@@ -2,451 +2,249 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Enchanted Christmas Binary Tree</title>
+    <title>Magical Christmas Binary Tree</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: linear-gradient(to bottom, #000428, #004e92);
-            font-family: 'Arial', sans-serif;
-            color: white;
-            user-select: none;
+        /* Previous styles remain the same */
+        @keyframes sparkle {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
         }
 
-        #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            max-width: 300px;
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
-        .control-section {
-            margin-bottom: 15px;
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        button {
+        .effect-button {
+            background-color: #3498db;
             margin: 5px;
             padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        button:hover {
+        .effect-button:hover {
+            background-color: #2980b9;
             transform: scale(1.05);
-            background-color: #45a049;
         }
 
-        #symbolControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .symbol-button {
-            font-size: 20px;
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .symbol-button:hover {
-            transform: scale(1.2);
-        }
-
-        #decorationInfo {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ddd;
-        }
-
-        .color-control {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .color-control label {
-            margin-right: 10px;
-            white-space: nowrap;
-        }
-
-        #autoColorControl {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .present {
-            position: relative;
-            width: 100px;
-            height: 80px;
-            background-color: #c72c2c;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .present:before, .present:after {
-            content: "";
-            position: absolute;
-            background-color: #c72c2c;
-        }
-
-        .present:before {
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 20px;
-        }
-
-        .present:after {
-            top: 0;
-            left: -20px;
-            width: 20px;
-            height: 80px;
-        }
-
-        .present:hover {
-            transform: scale(1.1);
-        }
-
-        .present-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-        }
-
-        #snowCanvas, #glitterCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
+        .effect-active {
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 112, 0.7);
         }
     </style>
 </head>
 <body>
-    <canvas id="treeCanvas"></canvas>
-    <canvas id="snowCanvas"></canvas>
-    <canvas id="glitterCanvas"></canvas>
-    
+    <!-- Previous body content remains the same -->
     <div id="controls">
+        <!-- Previous controls remain the same -->
         <div class="control-section">
-            <h3>Color Controls</h3>
-            <div class="color-control">
-                <label for="zeroColorPicker">0 Color:</label>
-                <input type="color" id="zeroColorPicker">
-            </div>
-            <div class="color-control">
-                <label for="oneColorPicker">1 Color:</label>
-                <input type="color" id="oneColorPicker">
-            </div>
-            
-            <div id="autoColorControl">
-                <label>Auto Color Mode:</label>
-                <select id="colorModeSelect">
-                    <option value="none">Off</option>
-                    <option value="random">Random Shifts</option>
-                    <option value="wave">Color Wave</option>
-                    <option value="pulse">Color Pulse</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="control-section">
-            <h3>Ornament Symbols</h3>
-            <div id="symbolControls">
-                <!-- Symbol buttons will be dynamically generated -->
-            </div>
-            <div id="decorationInfo">Click symbols to place them on the tree!</div>
-        </div>
-
-        <div class="control-section">
-            <h3>Tree Effects</h3>
-            <button onclick="toggleSnowfall()">Toggle Snowfall</button>
-            <button onclick="addGlitter()">Add Glitter</button>
-            <button onclick="resetTree()">Reset Tree</button>
-        </div>
-    </div>
-
-    <div id="presentWrapper">
-        <div class="present" id="presentBox">
-            <div class="present-text">Click me!</div>
+            <h3>Tree Magic Effects</h3>
+            <button class="effect-button" onclick="toggleLightEffect()">🎄 Tree Lights</button>
+            <button class="effect-button" onclick="toggleSparkleEffect()">✨ Sparkle</button>
+            <button class="effect-button" onclick="toggleSnowfall()">❄️ Snowfall</button>
+            <button class="effect-button" onclick="toggleGlitterEffect()">🌟 Glitter</button>
+            <button class="effect-button" onclick="toggleColorWave()">🌈 Color Wave</button>
+            <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
         </div>
     </div>
 
     <script>
-        // Global configuration
-        const FONT_SIZE = 20;
-        const CANVAS_PADDING = 50;
+        // Add these to your existing script, after the previous implementations
 
-        // Canvas setup
-        const treeCanvas = document.getElementById('treeCanvas');
-        const treeCtx = treeCanvas.getContext('2d');
-        const snowCanvas = document.getElementById('snowCanvas');
-        const snowCtx = snowCanvas.getContext('2d');
-        const glitterCanvas = document.getElementById('glitterCanvas');
-        const glitterCtx = glitterCanvas.getContext('2d');
+        // Lighting and Effect Variables
+        let isLightEffectActive = false;
+        let isSparkleEffectActive = false;
+        let isGlitterEffectActive = false;
+        let colorWaveInterval = null;
 
-        // Control elements
-        const zeroColorPicker = document.getElementById('zeroColorPicker');
-        const oneColorPicker = document.getElementById('oneColorPicker');
-        const colorModeSelect = document.getElementById('colorModeSelect');
-        const presentBox = document.getElementById('presentBox');
-        const symbolControls = document.getElementById('symbolControls');
-        const decorationInfo = document.getElementById('decorationInfo');
-
-        // Binary Christmas Tree pattern with star
-        const treeData = [
-            "        *",
-            "        0",
-            "       101",
-            "      01010",
-            "     101010101",
-            "    0101010101010",
-            "   10101010101010101",
-            "  010101010101010101010",
-            " 1010101010101010101010101",
-            "0101010101010101010101010101",
-            "       101",
-            "       101"
-        ];
-
-        // Initial color settings
-        const colors = {
-            '0': '#2ecc71',   // Green
-            '1': '#e74c3c',   // Red
-            '*': '#FFD700'    // Gold for star
-        };
-
-        // Color mode variables
-        let colorModeInterval = null;
-        let colorPhase = 0;
-
-        // Available symbols for ornaments
-        const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
-
-        // Ornament placement tracking
-        const ornaments = [];
-        const usedSymbols = new Set();
-
-        // Snowfall and glitter variables
-        let isSnowfallActive = false;
-        let isGlitterActive = false;
-        const snowflakes = [];
-        const glitterParticles = [];
-
-        // Configure canvas
-        function setupCanvas() {
-            treeCtx.font = `${FONT_SIZE}px monospace`;
-            treeCtx.textAlign = "center";
-            treeCtx.textBaseline = "middle";
-        }
-
-        // Resize canvases
-        function resizeCanvases() {
-            treeCanvas.width = snowCanvas.width = glitterCanvas.width = window.innerWidth;
-            treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
-            setupCanvas();
-            drawTree();
-        }
-
-        // Initialize color pickers
-        function initColorPickers() {
-            zeroColorPicker.value = colors['0'];
-            oneColorPicker.value = colors['1'];
-
-            zeroColorPicker.addEventListener('change', () => {
-                colors['0'] = zeroColorPicker.value;
-                drawTree();
-            });
-
-            oneColorPicker.addEventListener('change', () => {
-                colors['1'] = oneColorPicker.value;
-                drawTree();
-            });
-        }
-
-        // Auto color mode functions
-        function startAutoColorMode() {
-            // Stop any existing interval
-            if (colorModeInterval) {
-                clearInterval(colorModeInterval);
-            }
-
-            const mode = colorModeSelect.value;
-            switch(mode) {
-                case 'random':
-                    colorModeInterval = setInterval(randomColorShift, 1000);
-                    break;
-                case 'wave':
-                    colorModeInterval = setInterval(colorWave, 200);
-                    break;
-                case 'pulse':
-                    colorModeInterval = setInterval(colorPulse, 500);
-                    break;
-                default:
-                    // Stop auto color mode
-                    break;
+        // Lighting Effect
+        function toggleLightEffect() {
+            const lightButton = document.querySelector('button[onclick="toggleLightEffect()"]');
+            isLightEffectActive = !isLightEffectActive;
+            
+            if (isLightEffectActive) {
+                lightButton.classList.add('effect-active');
+                startTreeLightEffect();
+            } else {
+                lightButton.classList.remove('effect-active');
+                stopTreeLightEffect();
             }
         }
 
-        function randomColorShift() {
-            colors['0'] = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
-            colors['1'] = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
-            zeroColorPicker.value = colors['0'];
-            oneColorPicker.value = colors['1'];
-            drawTree();
-        }
+        function startTreeLightEffect() {
+            const treeRows = treeData.map(row => row.split('').filter(char => char !== ' '));
+            
+            function animateLights() {
+                if (!isLightEffectActive) return;
 
-        function colorWave() {
-            colorPhase += 0.5;
-            colors['0'] = `hsl(${(Math.sin(colorPhase) * 180 + 180)}, 100%, 50%)`;
-            colors['1'] = `hsl(${(Math.cos(colorPhase) * 180 + 180)}, 100%, 50%)`;
-            zeroColorPicker.value = colors['0'];
-            oneColorPicker.value = colors['1'];
-            drawTree();
-        }
+                treeRows.forEach((row, rowIndex) => {
+                    row.forEach((char, charIndex) => {
+                        if (char === '1' || char === '0') {
+                            const xCenter = treeCanvas.width / 2;
+                            const yStart = CANVAS_PADDING;
+                            const lineHeight = FONT_SIZE * 1.2;
+                            
+                            const x = xCenter - (row.length * FONT_SIZE / 4) + charIndex * (FONT_SIZE / 2);
+                            const y = yStart + rowIndex * lineHeight;
 
-        function colorPulse() {
-            const brightness = Math.sin(colorPhase) * 50 + 50;
-            colors['0'] = `hsl(120, 100%, ${brightness}%)`;
-            colors['1'] = `hsl(0, 100%, ${brightness}%)`;
-            zeroColorPicker.value = colors['0'];
-            oneColorPicker.value = colors['1'];
-            colorPhase += 0.5;
-            drawTree();
-        }
+                            // Create a blinking effect
+                            treeCtx.fillStyle = Math.random() > 0.5 ? 
+                                (char === '1' ? 'red' : 'green') : 
+                                (char === '1' ? 'yellow' : 'blue');
+                            treeCtx.fillText(char, x, y);
+                        }
+                    });
+                });
 
-        // Symbol and ornament functions
-        function generateSymbolButtons() {
-            availableSymbols.forEach(symbol => {
-                const symbolButton = document.createElement('div');
-                symbolButton.className = 'symbol-button';
-                symbolButton.textContent = symbol;
-                symbolButton.addEventListener('click', () => placeOrnament(symbol));
-                symbolControls.appendChild(symbolButton);
-            });
-        }
-
-        function drawTree() {
-            treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
-            const xCenter = treeCanvas.width / 2;
-            const yStart = CANVAS_PADDING;
-            const lineHeight = FONT_SIZE * 1.2;
-
-            for (let i = 0; i < treeData.length; i++) {
-                const row = treeData[i];
-                let x = xCenter - (row.length * FONT_SIZE / 4);
-                const y = yStart + i * lineHeight;
-
-                for (let j = 0; j < row.length; j++) {
-                    const char = row[j];
-                    if (char !== ' ') {
-                        treeCtx.fillStyle = colors[char] || 'white';
-                        treeCtx.fillText(char, x, y);
-                    }
-                    x += FONT_SIZE / 2;
+                // Schedule next animation frame
+                if (isLightEffectActive) {
+                    setTimeout(() => {
+                        drawTree(); // Restore original colors
+                        setTimeout(animateLights, 200);
+                    }, 200);
                 }
             }
 
-            // Draw ornaments
-            ornaments.forEach(ornament => {
-                treeCtx.fillStyle = 'white';
-                treeCtx.font = '15px Arial';
-                treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
+            animateLights();
+        }
+
+        function stopTreeLightEffect() {
+            drawTree(); // Restore original tree
+        }
+
+        // Sparkle Effect
+        function toggleSparkleEffect() {
+            const sparkleButton = document.querySelector('button[onclick="toggleSparkleEffect()"]');
+            isSparkleEffectActive = !isSparkleEffectActive;
+            
+            if (isSparkleEffectActive) {
+                sparkleButton.classList.add('effect-active');
+                startSparkleEffect();
+            } else {
+                sparkleButton.classList.remove('effect-active');
+            }
+        }
+
+        function startSparkleEffect() {
+            function createSparkle() {
+                if (!isSparkleEffectActive) return;
+
+                const xCenter = treeCanvas.width / 2;
+                const yStart = CANVAS_PADDING;
+                const lineHeight = FONT_SIZE * 1.2;
+
+                // Randomly select a position on the tree
+                const rowIndex = Math.floor(Math.random() * treeData.length);
+                const row = treeData[rowIndex];
+                const validPositions = row.split('').reduce((acc, char, index) => {
+                    if (char !== ' ' && char !== '*') acc.push(index);
+                    return acc;
+                }, []);
+
+                if (validPositions.length > 0) {
+                    const charIndex = validPositions[Math.floor(Math.random() * validPositions.length)];
+                    const x = xCenter - (row.length * FONT_SIZE / 4) + charIndex * (FONT_SIZE / 2);
+                    const y = yStart + rowIndex * lineHeight;
+
+                    // Create sparkle effect
+                    treeCtx.fillStyle = `rgba(255, 255, 255, ${Math.random()})`;
+                    treeCtx.beginPath();
+                    treeCtx.arc(x, y, 5, 0, Math.PI * 2);
+                    treeCtx.fill();
+                }
+
+                // Schedule next sparkle
+                if (isSparkleEffectActive) {
+                    setTimeout(createSparkle, Math.random() * 500);
+                }
+            }
+
+            createSparkle();
+        }
+
+        // Glitter Effect
+        function toggleGlitterEffect() {
+            const glitterButton = document.querySelector('button[onclick="toggleGlitterEffect()"]');
+            isGlitterEffectActive = !isGlitterEffectActive;
+            
+            if (isGlitterEffectActive) {
+                glitterButton.classList.add('effect-active');
+                startGlitterEffect();
+            } else {
+                glitterButton.classList.remove('effect-active');
+                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+            }
+        }
+
+        function startGlitterEffect() {
+            function createGlitterParticle() {
+                if (!isGlitterEffectActive) return;
+
+                glitterCtx.beginPath();
+                glitterCtx.fillStyle = `hsla(${Math.random() * 360}, 100%, 80%, ${Math.random()})`;
+                
+                const x = Math.random() * glitterCanvas.width;
+                const y = Math.random() * glitterCanvas.height;
+                
+                glitterCtx.arc(x, y, Math.random() * 3, 0, Math.PI * 2);
+                glitterCtx.fill();
+
+                // Schedule next particle
+                if (isGlitterEffectActive) {
+                    setTimeout(createGlitterParticle, Math.random() * 200);
+                }
+            }
+
+            createGlitterParticle();
+        }
+
+        // Color Wave Effect
+        function toggleColorWave() {
+            const colorWaveButton = document.querySelector('button[onclick="toggleColorWave()"]');
+            
+            if (colorWaveInterval) {
+                // Stop color wave
+                clearInterval(colorWaveInterval);
+                colorWaveInterval = null;
+                colorWaveButton.classList.remove('effect-active');
+                drawTree(); // Reset to original colors
+            } else {
+                // Start color wave
+                colorWaveButton.classList.add('effect-active');
+                let hue = 0;
+                colorWaveInterval = setInterval(() => {
+                    colors['0'] = `hsl(${hue}, 100%, 50%)`;
+                    colors['1'] = `hsl(${(hue + 180) % 360}, 100%, 50%)`;
+                    drawTree();
+                    hue = (hue + 5) % 360;
+                }, 100);
+            }
+        }
+
+        // Reset All Effects
+        function resetAllEffects() {
+            // Reset all effect flags
+            isLightEffectActive = false;
+            isSparkleEffectActive = false;
+            isGlitterEffectActive = false;
+            
+            // Clear intervals
+            if (colorWaveInterval) {
+                clearInterval(colorWaveInterval);
+                colorWaveInterval = null;
+            }
+
+            // Reset button styles
+            document.querySelectorAll('.effect-button').forEach(button => {
+                button.classList.remove('effect-active');
             });
-        }
 
-        function placeOrnament(symbol) {
-            // Check if symbol is already used
-            if (usedSymbols.has(symbol)) {
-                decorationInfo.textContent = `${symbol} is already on the tree!`;
-                return;
-            }
-
-            // Calculate possible ornament positions within the tree area
-            const xCenter = treeCanvas.width / 2;
-            const yStart = CANVAS_PADDING;
-            const lineHeight = FONT_SIZE * 1.2;
-
-            // Randomly place ornament on the tree
-            const randomRow = Math.floor(Math.random() * treeData.length);
-            const row = treeData[randomRow];
-
-            // Find a random non-space position in the row
-            const validPositions = row.split('').reduce((acc, char, index) => {
-                if (char !== ' ' && char !== '*') acc.push(index);
-                return acc;
-            }, []);
-
-            if (validPositions.length > 0) {
-                const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
-                const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
-                const y = yStart + randomRow * lineHeight;
-
-                ornaments.push({ x, y, symbol });
-                usedSymbols.add(symbol);
-                decorationInfo.textContent = `${symbol} placed at row ${randomRow + 1}!`;
-                drawTree();
-            }
-        }
-
-        function resetTree() {
-            // Clear ornaments
-            ornaments.length = 0;
-            usedSymbols.clear();
-            decorationInfo.textContent = 'Tree reset! Click symbols to place ornaments.';
+            // Clear canvases and reset tree
+            glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
             drawTree();
-        }
-
-        function openPresent() {
-            presentBox.style.transform = 'scale(1.2)';
-            presentBox.querySelector('.present-text').textContent = 'Merry Christmas!';
-            setTimeout(() => {
-                presentBox.style.transform = 'scale(1)';
-                setTimeout(() => {
-                    presentBox.querySelector('.present-text').textContent = 'Click me!';
-                }, 2000);
-            }, 1000);
-        }
-
-        // Event Listeners
-        presentBox.addEventListener('click', openPresent);
-        colorModeSelect.addEventListener('change', startAutoColorMode);
-
-        // Initialization
-        setupCanvas();
-        window.addEventListener('resize', resizeCanvases);
-        generateSymbolButtons();
-        initColorPickers();
-        resizeCanvases();
-
-        // Optional Effects Functions (can be expanded)
-        function toggleSnowfall() {
-            // Snowfall implementation remains the same as in the original code
-        }
-
-        function addGlitter() {
-            // Glitter implementation remains the same as in the original code
         }
     </script>
 </body>
