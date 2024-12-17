@@ -4,32 +4,28 @@
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-        body {
+        body { 
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; 
             background: linear-gradient(to bottom, #000428, #004e92);
             font-family: 'Arial', sans-serif;
             color: white;
             user-select: none;
         }
-
         #controls {
             position: absolute;
             top: 10px;
             left: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255,255,255,0.1);
             padding: 20px;
             border-radius: 10px;
             display: flex;
             flex-direction: column;
-            max-width: 300px;
-            z-index: 1000; /* Ensure controls are on top */
+            max-width: 250px;
         }
-
         .control-section {
             margin-bottom: 10px;
         }
-
         button {
             margin: 5px;
             padding: 5px 10px;
@@ -40,194 +36,170 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
         button:hover {
             transform: scale(1.05);
             background-color: #45a049;
         }
-
-        #symbolControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+        #snowflakesCanvas, #treeCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
         }
-
-        .symbol-button {
+        .symbol {
             font-size: 20px;
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
             cursor: pointer;
+            margin: 5px;
+            color: white;
             transition: transform 0.2s ease;
         }
-
-        .symbol-button:hover {
+        .symbol:hover {
             transform: scale(1.2);
-        }
-
-        #decorationInfo {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ddd;
-        }
-
-        #snowDensity {
-            margin-top: 10px;
-        }
-
-        #snowDensity label {
-            color: #ddd;
+            color: #ffd700; /* Gold highlight */
         }
     </style>
 </head>
 <body>
+    <canvas id="snowflakesCanvas"></canvas>
     <canvas id="treeCanvas"></canvas>
     <div id="controls">
         <div class="control-section">
-            <h3>Tree Symbol Controls</h3>
-            <input type="text" id="characterInput" placeholder="Enter character (0/1/*)">
+            <h3>Tree Color Controls</h3>
+            <input type="text" id="characterInput" placeholder="Enter character (0/1/A/B)">
             <input type="color" id="colorPicker">
             <button onclick="changeColor()">Change Color</button>
-            <button onclick="randomizeColors()">Randomize Colors</button>
         </div>
-
         <div class="control-section">
-            <h3>Ornament Symbols</h3>
-            <div id="symbolControls">
-            </div>
-            <div id="decorationInfo">Click symbols to place them on the tree!</div>
+            <h3>Keyboard Symbol Ornaments</h3>
+            <div id="symbolControls"></div>
+            <button onclick="resetTree()">Reset Tree</button>
         </div>
-
-        <div class="control-section" id="snowDensity">
-            <label for="snowDensitySlider">Snow Density:</label>
-            <input type="range" id="snowDensitySlider" min="10" max="200" value="100" step="10">
+        <div class="control-section">
+            <h3>Effects</h3>
+            <button onclick="toggleSnowfall()">Toggle Symbol Snowfall</button>
         </div>
     </div>
 
     <script>
-        const FONT_SIZE = 20;
-        const CANVAS_PADDING = 50;
-        const PARALLAX_SPEED = 0.05; // Adjust for parallax effect
-
-        const canvas = document.getElementById('treeCanvas');
-        const ctx = canvas.getContext('2d');
-        const characterInput = document.getElementById('characterInput');
-        const colorPicker = document.getElementById('colorPicker');
+        const treeCanvas = document.getElementById('treeCanvas');
+        const ctx = treeCanvas.getContext('2d');
+        const snowCanvas = document.getElementById('snowflakesCanvas');
+        const snowCtx = snowCanvas.getContext('2d');
         const symbolControls = document.getElementById('symbolControls');
-        const decorationInfo = document.getElementById('decorationInfo');
-        const snowDensitySlider = document.getElementById('snowDensitySlider');
+
+        const symbols = ['#', '*', '%', '@', '&', '+', '^'];
+        const snowflakes = [];
+        const ornaments = [];
+        let isSnowfallActive = false;
 
         const treeData = [
-            "        *",
-            "       010",
-            "      10101",
-            "     0101010",
-            "    101010101",
-            "   01010101010",
-            "  1010101010101",
-            " 010101010101010",
-            "10101010101010101",
+            "        0",
+            "       101",
+            "      01010",
+            "     101010101",
+            "    0101010101010",
+            "   10101010101010101",
+            "  010101010101010101010",
+            " 1010101010101010101010101",
+            "0101010101010101010101010101",
             "       101",
             "       101"
         ];
 
         const colors = {
-            '0': '#2ecc71', // Green
-            '1': '#e74c3c', // Red
-            '*': '#FFD700'  // Gold for star
+            '0': '#2ecc71',
+            '1': '#e74c3c',
+            'A': '#3498db',
+            'B': '#f39c12'
         };
 
-        const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
-        const ornaments = [];
-        const usedSymbols = new Set();
-        let snowFlakes = [];
-        let parallaxOffset = 0;
-
-        function setupCanvas() {
-            ctx.font = `${FONT_SIZE}px monospace`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-        }
-
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            setupCanvas();
-            drawTree();
+            treeCanvas.width = snowCanvas.width = window.innerWidth;
+            treeCanvas.height = snowCanvas.height = window.innerHeight;
         }
-
-        setupCanvas();
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        availableSymbols.forEach(symbol => {
-            const symbolButton = document.createElement('div');
-            symbolButton.className = 'symbol-button';
-            symbolButton.textContent = symbol;
-            symbolButton.addEventListener('click', () => placeOrnament(symbol));
-            symbolControls.appendChild(symbolButton);
-        });
-
-        function createSnowFlake() {
-            return {
-                x: Math.random() * canvas.width,
-                y: -20,
-                size: Math.random() * 3 + 1,
-                speed: Math.random() * 0.5 + 0.5
-            };
-        }
-
-        function drawSnow() {
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            snowFlakes.forEach(flake => {
-                ctx.moveTo(flake.x + parallaxOffset, flake.y);
-                ctx.arc(flake.x + parallaxOffset, flake.y, flake.size, 0, Math.PI * 2);
-            });
-            ctx.fill();
-        }
-
-        function updateSnow() {
-            for (let i = 0; i < snowFlakes.length; i++) {
-                snowFlakes[i].y += snowFlakes[i].speed;
-                if (snowFlakes[i].y > canvas.height) {
-                    snowFlakes[i].y = -20;
-                    snowFlakes[i].x = Math.random() * canvas.width;
-                }
-            }
-        }
-
         function drawTree() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+            const xCenter = treeCanvas.width / 2;
+            const yStart = 50;
+            const lineHeight = 25;
 
-            updateSnow();
-            drawSnow();
-
-            const xCenter = canvas.width / 2;
-            const yStart = CANVAS_PADDING;
-            const lineHeight = FONT_SIZE * 1.2;
-
-            for (let i = 0; i < treeData.length; i++) {
-                const row = treeData[i];
-                let x = xCenter - (row.length * FONT_SIZE / 4);
+            treeData.forEach((row, i) => {
+                let x = xCenter - (row.length * 10);
                 const y = yStart + i * lineHeight;
 
-                for (let j = 0; j < row.length; j++) {
-                    const char = row[j];
+                row.split('').forEach(char => {
                     if (char !== ' ') {
                         ctx.fillStyle = colors[char] || 'white';
                         ctx.fillText(char, x, y);
                     }
-                    x += FONT_SIZE / 2;
-                }
-            }
-
-            ornaments.forEach(ornament => {
-                ctx.fillStyle = 'white';
-                ctx.font = '15px Arial';
-                ctx.fillText(ornament.symbol, ornament.x, ornament.y);
+                    x += 20;
+                });
             });
 
-            parallaxOffset += PARALLAX_SPEED; // Update parallax offset
+            ornaments.forEach(orn => {
+                ctx.fillStyle = '#FFD700';
+                ctx.fillText(orn.symbol, orn.x, orn.y);
+            });
+        }
 
-            requestAnimationFrame(drawTree
+        function placeSymbol(symbol) {
+            const x = Math.random() * treeCanvas.width;
+            const y = Math.random() * treeCanvas.height / 2 + 100;
+            ornaments.push({ x, y, symbol });
+            drawTree();
+        }
+
+        function generateSymbolControls() {
+            symbols.forEach(sym => {
+                const span = document.createElement('span');
+                span.className = 'symbol';
+                span.textContent = sym;
+                span.onclick = () => placeSymbol(sym);
+                symbolControls.appendChild(span);
+            });
+        }
+
+        function createSnowflake() {
+            return {
+                x: Math.random() * window.innerWidth,
+                y: 0,
+                speed: Math.random() * 3 + 1,
+                symbol: symbols[Math.floor(Math.random() * symbols.length)]
+            };
+        }
+
+        function drawSnowflakes() {
+            snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            snowCtx.font = "20px Arial";
+            snowCtx.fillStyle = "white";
+
+            snowflakes.forEach((flake, index) => {
+                snowCtx.fillText(flake.symbol, flake.x, flake.y);
+                flake.y += flake.speed;
+                if (flake.y > window.innerHeight) snowflakes.splice(index, 1);
+            });
+
+            if (isSnowfallActive) {
+                if (Math.random() < 0.2) snowflakes.push(createSnowflake());
+                requestAnimationFrame(drawSnowflakes);
+            }
+        }
+
+        function toggleSnowfall() {
+            isSnowfallActive = !isSnowfallActive;
+            if (isSnowfallActive) drawSnowflakes();
+        }
+
+        function resetTree() {
+            ornaments.length = 0;
+            drawTree();
+        }
+
+        generateSymbolControls();
+        drawTree();
+    </script>
+</body>
+</html>
