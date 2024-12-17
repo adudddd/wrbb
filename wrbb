@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Changer</title>
+    <style>
+        body {
+            margin: 0; /* Remove default margins */
+            height: 100vh; /* Make body take up full viewport height */
+            display: flex;
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            transition: background-color 0.5s ease; /* Smooth transitions */
+            cursor: pointer; /* Change cursor to indicate clickability */
+        }
+
+        h1 {
+            color: white; /* Text color */
+            text-shadow: 2px 2px 4px #000000; /* Add a text shadow */
+            font-family: sans-serif;
+            user-select: none; /* Prevent text selection */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Click Me!</h1>
+    <script>
+        const body = document.body;
+        const h1 = document.querySelector('h1');
+
+        body.addEventListener('click', () => {
+            const randomColor = generateRandomColor();
+            body.style.backgroundColor = randomColor;
+
+            // Adjust text color for better contrast
+            const rgb = hexToRgb(randomColor)
+            if (rgb) {
+                const luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
+                h1.style.color = luminance > 128 ? 'black' : 'white';
+            }
+        });
+
+        function generateRandomColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+    </script>
+</body>
+</html>
