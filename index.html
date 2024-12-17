@@ -26,8 +26,58 @@
             z-index: 1000; /* Ensure controls are on top */
         }
 
-        /* ... rest of CSS styles ... */
+        .control-section {
+            margin-bottom: 10px;
+        }
 
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+
+        #symbolControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .symbol-button {
+            font-size: 20px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .symbol-button:hover {
+            transform: scale(1.2);
+        }
+
+        #decorationInfo {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #ddd;
+        }
+
+        #snowDensity {
+            margin-top: 10px;
+        }
+
+        #snowDensity label {
+            color: #ddd;
+        }
     </style>
 </head>
 <body>
@@ -47,11 +97,17 @@
             </div>
             <div id="decorationInfo">Click symbols to place them on the tree!</div>
         </div>
+
+        <div class="control-section" id="snowDensity">
+            <label for="snowDensitySlider">Snow Density:</label>
+            <input type="range" id="snowDensitySlider" min="10" max="200" value="100" step="10">
+        </div>
     </div>
 
     <script>
         const FONT_SIZE = 20;
         const CANVAS_PADDING = 50;
+        const PARALLAX_SPEED = 0.05; // Adjust for parallax effect
 
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
@@ -59,6 +115,7 @@
         const colorPicker = document.getElementById('colorPicker');
         const symbolControls = document.getElementById('symbolControls');
         const decorationInfo = document.getElementById('decorationInfo');
+        const snowDensitySlider = document.getElementById('snowDensitySlider');
 
         const treeData = [
             "        *",
@@ -84,6 +141,7 @@
         const ornaments = [];
         const usedSymbols = new Set();
         let snowFlakes = [];
+        let parallaxOffset = 0;
 
         function setupCanvas() {
             ctx.font = `${FONT_SIZE}px monospace`;
@@ -123,8 +181,8 @@
             ctx.fillStyle = 'white';
             ctx.beginPath();
             snowFlakes.forEach(flake => {
-                ctx.moveTo(flake.x, flake.y);
-                ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+                ctx.moveTo(flake.x + parallaxOffset, flake.y);
+                ctx.arc(flake.x + parallaxOffset, flake.y, flake.size, 0, Math.PI * 2);
             });
             ctx.fill();
         }
@@ -170,56 +228,6 @@
                 ctx.fillText(ornament.symbol, ornament.x, ornament.y);
             });
 
-            requestAnimationFrame(drawTree);
-        }
+            parallaxOffset += PARALLAX_SPEED; // Update parallax offset
 
-        function placeOrnament(symbol) {
-            if (usedSymbols.has(symbol)) {
-                decorationInfo.textContent = `${symbol} is already on the tree!`;
-                return;
-            }
-
-            const xCenter = canvas.width / 2;
-            const yStart = CANVAS_PADDING;
-            const lineHeight = FONT_SIZE * 1.2;
-
-            const randomRow = Math.floor(Math.random() * treeData.length);
-            const row = treeData[randomRow];
-
-            const validPositions = row.split('').reduce((acc, char, index) => {
-                if (char !== ' ' && char !== '*') acc.push(index);
-                return acc;
-            }, []);
-
-            if (validPositions.length > 0) {
-                const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
-                const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
-                const y = yStart + randomRow * lineHeight;
-
-                ornaments.push({ x, y, symbol });
-                usedSymbols.add(symbol);
-                decorationInfo.textContent = `${symbol} placed at row ${randomRow + 1}!`;
-                drawTree();
-            }
-        }
-
-        function changeColor() {
-            const character = characterInput.value.toUpperCase();
-            const newColor = colorPicker.value;
-
-            if (colors.hasOwnProperty(character)) {
-                colors[character] = newColor;
-                drawTree();
-            } else {
-                alert('Invalid character! Use 0, 1, or *');
-            }
-        }
-
-        function randomizeColors() {
-            Object.keys(colors).forEach(key => {
-                colors[key] = `rgb(<span class="math-inline">\{Math\.random\(\)\*255\},</span>{Math.random()*255},${Math.random()*255})`;
-            });
-            drawTree();
-        }
-
-        for(let i = 0; i
+            requestAnimationFrame(drawTree
