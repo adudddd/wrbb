@@ -2,61 +2,237 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Changer</title>
+    <title>Magical Christmas Binary Tree</title>
     <style>
         body {
-            margin: 0; /* Remove default margins */
-            height: 100vh; /* Make body take up full viewport height */
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000428, #004e92);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
             display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            transition: background-color 0.5s ease; /* Smooth transitions */
-            cursor: pointer; /* Change cursor to indicate clickability */
+            flex-direction: column;
+            max-width: 300px;
+            z-index: 1000; /* Ensure controls are on top */
         }
 
-        h1 {
-            color: white; /* Text color */
-            text-shadow: 2px 2px 4px #000000; /* Add a text shadow */
-            font-family: sans-serif;
-            user-select: none; /* Prevent text selection */
+        .control-section {
+            margin-bottom: 10px;
         }
 
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+
+        #symbolControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .symbol-button {
+            font-size: 20px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .symbol-button:hover {
+            transform: scale(1.2);
+        }
+
+        #decorationInfo {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #ddd;
+        }
     </style>
 </head>
 <body>
-    <h1>Click Me!</h1>
+    <canvas id="treeCanvas"></canvas>
+    <div id="controls">
+        <div class="control-section">
+            <h3>Tree Symbol Controls</h3>
+            <input type="text" id="characterInput" placeholder="Enter character (0/1/*)">
+            <input type="color" id="colorPicker">
+            <button onclick="changeColor()">Change Color</button>
+            <button onclick="randomizeColors()">Randomize Colors</button>
+        </div>
+
+        <div class="control-section">
+            <h3>Ornament Symbols</h3>
+            <div id="symbolControls">
+                </div>
+            <div id="decorationInfo">Click symbols to place them on the tree!</div>
+        </div>
+    </div>
+
     <script>
-        const body = document.body;
-        const h1 = document.querySelector('h1');
+        const FONT_SIZE = 20;
+        const CANVAS_PADDING = 50;
 
-        body.addEventListener('click', () => {
-            const randomColor = generateRandomColor();
-            body.style.backgroundColor = randomColor;
+        const canvas = document.getElementById('treeCanvas');
+        const ctx = canvas.getContext('2d');
+        const characterInput = document.getElementById('characterInput');
+        const colorPicker = document.getElementById('colorPicker');
+        const symbolControls = document.getElementById('symbolControls');
+        const decorationInfo = document.getElementById('decorationInfo');
 
-            // Adjust text color for better contrast
-            const rgb = hexToRgb(randomColor)
-            if (rgb) {
-                const luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
-                h1.style.color = luminance > 128 ? 'black' : 'white';
-            }
+        const treeData = [
+            "        *",
+            "       010",
+            "      10101",
+            "     0101010",
+            "    101010101",
+            "   01010101010",
+            "  1010101010101",
+            " 010101010101010",
+            "10101010101010101",
+            "       101",
+            "       101"
+        ];
+
+        const colors = {
+            '0': '#2ecc71', // Green
+            '1': '#e74c3c', // Red
+            '*': '#FFD700'  // Gold for star
+        };
+
+        const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
+        const ornaments = [];
+        const usedSymbols = new Set();
+        let snowFlakes = [];
+
+        function setupCanvas() {
+            ctx.font = `${FONT_SIZE}px monospace`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            setupCanvas();
+            drawTree();
+        }
+
+        setupCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        availableSymbols.forEach(symbol => {
+            const symbolButton = document.createElement('div');
+            symbolButton.className = 'symbol-button';
+            symbolButton.textContent = symbol;
+            symbolButton.addEventListener('click', () => placeOrnament(symbol));
+            symbolControls.appendChild(symbolButton);
         });
 
-        function generateRandomColor() {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        function createSnowFlake() {
+            return {
+                x: Math.random() * canvas.width,
+                y: -20,
+                size: Math.random() * 3 + 1,
+                speed: Math.random() * 0.5 + 0.5
+            };
         }
 
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
+        function drawSnow() {
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            snowFlakes.forEach(flake => {
+                ctx.moveTo(flake.x, flake.y);
+                ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+            });
+            ctx.fill();
         }
-    </script>
-</body>
-</html>
+
+        function updateSnow() {
+            for (let i = 0; i < snowFlakes.length; i++) {
+                snowFlakes[i].y += snowFlakes[i].speed;
+                if (snowFlakes[i].y > canvas.height) {
+                    snowFlakes[i].y = -20;
+                    snowFlakes[i].x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        function drawTree() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            updateSnow();
+            drawSnow();
+
+            const xCenter = canvas.width / 2;
+            const yStart = CANVAS_PADDING;
+            const lineHeight = FONT_SIZE * 1.2;
+
+            for (let i = 0; i < treeData.length; i++) {
+                const row = treeData[i];
+                let x = xCenter - (row.length * FONT_SIZE / 4);
+                const y = yStart + i * lineHeight;
+
+                for (let j = 0; j < row.length; j++) {
+                    const char = row[j];
+                    if (char !== ' ') {
+                        ctx.fillStyle = colors[char] || 'white';
+                        ctx.fillText(char, x, y);
+                    }
+                    x += FONT_SIZE / 2;
+                }
+            }
+
+            ornaments.forEach(ornament => {
+                ctx.fillStyle = 'white';
+                ctx.font = '15px Arial';
+                ctx.fillText(ornament.symbol, ornament.x, ornament.y);
+            });
+
+            requestAnimationFrame(drawTree);
+        }
+
+        function placeOrnament(symbol) {
+            if (usedSymbols.has(symbol)) {
+                decorationInfo.textContent = `${symbol} is already on the tree!`;
+                return;
+            }
+
+            const xCenter = canvas.width / 2;
+            const yStart = CANVAS_PADDING;
+            const lineHeight = FONT_SIZE * 1.2;
+
+            const randomRow = Math.floor(Math.random() * treeData.length);
+            const row = treeData[randomRow];
+
+            const validPositions = row.split('').reduce((acc, char, index) => {
+                if (char !== ' ' && char !== '*') acc.push(index);
+                return acc;
+            }, []);
+
+            if (validPositions.length > 0) {
+                const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
+                const x         
