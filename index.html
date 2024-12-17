@@ -434,3 +434,287 @@
             if (isLightEffectActive) {
                 lightButton.classList.add('effect-active');
                 startTreeLightEffect
+                () {
+                lightEffectInterval = setInterval(() => {
+                    colors['0'] = colors['0'] === '#2ecc71' ? '#27ae60' : '#2ecc71';
+                    colors['1'] = colors['1'] === '#e74c3c' ? '#c0392b' : '#e74c3c';
+                    drawTree();
+                }, 500);
+            } else {
+                lightButton.classList.remove('effect-active');
+                clearInterval(lightEffectInterval);
+                // Reset to original colors
+                colors['0'] = '#2ecc71';
+                colors['1'] = '#e74c3c';
+                drawTree();
+            }
+        }
+
+        // Sparkle Effect
+        function toggleSparkleEffect() {
+            const sparkleButton = document.querySelector('button[onclick="toggleSparkleEffect()"]');
+            isSparkleEffectActive = !isSparkleEffectActive;
+
+            if (isSparkleEffectActive) {
+                sparkleButton.classList.add('effect-active');
+                createSparkleEffect();
+            } else {
+                sparkleButton.classList.remove('effect-active');
+            }
+        }
+
+        function createSparkleEffect() {
+            // Create sparkle points on the tree
+            const xCenter = treeCanvas.width / 2;
+            const yStart = CANVAS_PADDING;
+            const lineHeight = FONT_SIZE * 1.2;
+
+            const sparkleCount = 20;
+            for (let i = 0; i < sparkleCount; i++) {
+                const randomRow = Math.floor(Math.random() * treeData.length);
+                const row = treeData[randomRow];
+
+                const validPositions = row.split('').reduce((acc, char, index) => {
+                    if (char !== ' ' && char !== '*') acc.push(index);
+                    return acc;
+                }, []);
+
+                if (validPositions.length > 0) {
+                    const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
+                    const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
+                    const y = yStart + randomRow * lineHeight;
+
+                    // Create a twinkling effect
+                    let opacity = 0;
+                    const sparkleInterval = setInterval(() => {
+                        treeCtx.globalAlpha = opacity;
+                        treeCtx.fillStyle = 'white';
+                        treeCtx.font = '10px Arial';
+                        treeCtx.fillText('✨', x, y);
+                        treeCtx.globalAlpha = 1;
+
+                        opacity += 0.2;
+                        if (opacity > 1) {
+                            clearInterval(sparkleInterval);
+                            drawTree(); // Redraw to remove sparkle
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        // Snowfall Effect
+        function toggleSnowfall() {
+            const snowButton = document.querySelector('button[onclick="toggleSnowfall()"]');
+            isSnowfallActive = !isSnowfallActive;
+
+            if (isSnowfallActive) {
+                snowButton.classList.add('effect-active');
+                startSnowfall();
+            } else {
+                snowButton.classList.remove('effect-active');
+                snowflakes.length = 0;
+                snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            }
+        }
+
+        function startSnowfall() {
+            function createSnowflake() {
+                return {
+                    x: Math.random() * snowCanvas.width,
+                    y: 0,
+                    radius: Math.random() * 3 + 1,
+                    speedY: Math.random() * 3 + 1,
+                    speedX: Math.random() * 1 - 0.5
+                };
+            }
+
+            function animateSnowfall() {
+                if (!isSnowfallActive) return;
+
+                snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+                
+                // Add new snowflakes
+                if (snowflakes.length < 100) {
+                    snowflakes.push(createSnowflake());
+                }
+
+                snowflakes.forEach((flake, index) => {
+                    snowCtx.beginPath();
+                    snowCtx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+                    snowCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    snowCtx.fill();
+
+                    flake.y += flake.speedY;
+                    flake.x += flake.speedX;
+
+                    // Remove snowflakes that are out of bounds
+                    if (flake.y > snowCanvas.height) {
+                        snowflakes.splice(index, 1);
+                    }
+                });
+
+                requestAnimationFrame(animateSnowfall);
+            }
+
+            animateSnowfall();
+        }
+
+        // Glitter Effect
+        function toggleGlitterEffect() {
+            const glitterButton = document.querySelector('button[onclick="toggleGlitterEffect()"]');
+            isGlitterEffectActive = !isGlitterEffectActive;
+
+            if (isGlitterEffectActive) {
+                glitterButton.classList.add('effect-active');
+                startGlitterEffect();
+            } else {
+                glitterButton.classList.remove('effect-active');
+                glitterParticles.length = 0;
+                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+            }
+        }
+
+        function startGlitterEffect() {
+            function createGlitterParticle() {
+                return {
+                    x: Math.random() * glitterCanvas.width,
+                    y: Math.random() * glitterCanvas.height,
+                    radius: Math.random() * 2 + 1,
+                    color: `hsl(${Math.random() * 360}, 100%, 80%)`,
+                    opacity: 1,
+                    shrinking: false
+                };
+            }
+
+            function animateGlitter() {
+                if (!isGlitterEffectActive) return;
+
+                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+                
+                // Add new glitter particles
+                if (glitterParticles.length < 50) {
+                    glitterParticles.push(createGlitterParticle());
+                }
+
+                glitterParticles.forEach((particle, index) => {
+                    glitterCtx.beginPath();
+                    glitterCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    glitterCtx.fillStyle = particle.color;
+                    glitterCtx.globalAlpha = particle.opacity;
+                    glitterCtx.fill();
+                    glitterCtx.globalAlpha = 1;
+
+                    // Particle animation
+                    if (particle.shrinking) {
+                        particle.radius -= 0.1;
+                        particle.opacity -= 0.05;
+                    } else {
+                        particle.radius += 0.1;
+                        particle.opacity -= 0.02;
+                    }
+
+                    if (particle.radius <= 0 || particle.opacity <= 0) {
+                        glitterParticles.splice(index, 1);
+                    }
+
+                    particle.shrinking = particle.radius > 3;
+                });
+
+                requestAnimationFrame(animateGlitter);
+            }
+
+            animateGlitter();
+        }
+
+        // Color Wave Effect
+        function toggleColorWave() {
+            const colorWaveButton = document.querySelector('button[onclick="toggleColorWave()"]');
+            
+            if (colorWaveInterval) {
+                clearInterval(colorWaveInterval);
+                colorWaveInterval = null;
+                colorWaveButton.classList.remove('effect-active');
+                // Reset colors
+                colors['0'] = '#2ecc71';
+                colors['1'] = '#e74c3c';
+                drawTree();
+            } else {
+                colorWaveButton.classList.add('effect-active');
+                colorWaveInterval = setInterval(() => {
+                    const hue0 = (Date.now() / 10) % 360;
+                    const hue1 = (Date.now() / 10 + 180) % 360;
+                    colors['0'] = `hsl(${hue0}, 100%, 50%)`;
+                    colors['1'] = `hsl(${hue1}, 100%, 50%)`;
+                    drawTree();
+                }, 100);
+            }
+        }
+
+        // Reset all effects
+        function resetAllEffects() {
+            // Light Effect
+            if (isLightEffectActive) {
+                toggleLightEffect();
+            }
+            
+            // Sparkle Effect
+            if (isSparkleEffectActive) {
+                toggleSparkleEffect();
+            }
+            
+            // Snowfall
+            if (isSnowfallActive) {
+                toggleSnowfall();
+            }
+            
+            // Glitter
+            if (isGlitterEffectActive) {
+                toggleGlitterEffect();
+            }
+            
+            // Color Wave
+            if (colorWaveInterval) {
+                toggleColorWave();
+            }
+            
+            // Reset color mode
+            colorModeSelect.value = 'none';
+            startAutoColorMode();
+            
+            // Remove all ornaments
+            ornaments.length = 0;
+            usedSymbols.clear();
+            decorationInfo.textContent = 'All effects reset! Click symbols to place them on the tree.';
+            drawTree();
+        }
+
+        // Present Box Interaction
+        presentBox.addEventListener('click', () => {
+            const symbolInfo = [
+                'Ho Ho Ho! 🎅',
+                'Merry Christmas! 🎄', 
+                'Enjoy the Magic! ✨', 
+                'Spread Joy! 🎁', 
+                'Winter Wonderland! ❄️'
+            ];
+            
+            presentBox.querySelector('.present-text').textContent = 
+                symbolInfo[Math.floor(Math.random() * symbolInfo.length)];
+        });
+
+        // Initial setup
+        function init() {
+            generateSymbolButtons();
+            initColorPickers();
+            resizeCanvases();
+            
+            // Resize listener
+            window.addEventListener('resize', resizeCanvases);
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
