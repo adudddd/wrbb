@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Magical Christmas Binary Tree</title>
+    <title>Enchanted Christmas Binary Tree</title>
     <style>
         body {
             margin: 0;
@@ -26,50 +26,7 @@
             z-index: 1000; /* Ensure controls are on top */
         }
 
-        .control-section {
-            margin-bottom: 10px;
-        }
-
-        button {
-            margin: 5px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            background-color: #45a049;
-        }
-
-        #symbolControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .symbol-button {
-            font-size: 20px;
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .symbol-button:hover {
-            transform: scale(1.2);
-        }
-
-        #decorationInfo {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ddd;
-        }
+        /* ... rest of CSS styles ... */
 
         #snowDensity {
             margin-top: 10px;
@@ -82,6 +39,8 @@
 </head>
 <body>
     <canvas id="treeCanvas"></canvas>
+    <canvas id="snowCanvas"></canvas>
+    <canvas id="glitterCanvas"></canvas>
     <div id="controls">
         <div class="control-section">
             <h3>Tree Symbol Controls</h3>
@@ -98,9 +57,22 @@
             <div id="decorationInfo">Click symbols to place them on the tree!</div>
         </div>
 
+        <div class="control-section">
+            <h3>Tree Effects</h3>
+            <button onclick="toggleSnowfall()">Toggle Snowfall</button>
+            <button onclick="addGlitter()">Add Glitter</button>
+            <button onclick="resetTree()">Reset Tree</button>
+        </div>
+
         <div class="control-section" id="snowDensity">
             <label for="snowDensitySlider">Snow Density:</label>
             <input type="range" id="snowDensitySlider" min="10" max="200" value="100" step="10">
+        </div>
+    </div>
+
+    <div id="presentWrapper">
+        <div class="present" onclick="openPresent()">
+            <div class="present-text">Click me!</div>
         </div>
     </div>
 
@@ -109,8 +81,13 @@
         const CANVAS_PADDING = 50;
         const PARALLAX_SPEED = 0.05; // Adjust for parallax effect
 
-        const canvas = document.getElementById('treeCanvas');
-        const ctx = canvas.getContext('2d');
+        const treeCanvas = document.getElementById('treeCanvas');
+        const treeCtx = treeCanvas.getContext('2d');
+        const snowCanvas = document.getElementById('snowCanvas');
+        const snowCtx = snowCanvas.getContext('2d');
+        const glitterCanvas = document.getElementById('glitterCanvas');
+        const glitterCtx = glitterCanvas.getContext('2d');
+
         const characterInput = document.getElementById('characterInput');
         const colorPicker = document.getElementById('colorPicker');
         const symbolControls = document.getElementById('symbolControls');
@@ -141,24 +118,27 @@
         const ornaments = [];
         const usedSymbols = new Set();
         let snowFlakes = [];
+        let glitterParticles = [];
         let parallaxOffset = 0;
 
         function setupCanvas() {
-            ctx.font = `${FONT_SIZE}px monospace`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
+            treeCtx.font = `${FONT_SIZE}px monospace`;
+            treeCtx.textAlign = "center";
+            treeCtx.textBaseline = "middle";
         }
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        function resizeCanvases() {
+            treeCanvas.width = snowCanvas.width = glitterCanvas.width = window.innerWidth;
+            treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
             setupCanvas();
             drawTree();
+            toggleSnowfall(); // Ensure snowfall state is updated on resize
+            toggleGlitter(); // Ensure glitter state is updated on resize
         }
 
         setupCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
 
         availableSymbols.forEach(symbol => {
             const symbolButton = document.createElement('div');
@@ -170,7 +150,7 @@
 
         function createSnowFlake() {
             return {
-                x: Math.random() * canvas.width,
+                x: Math.random() * treeCanvas.width,
                 y: -20,
                 size: Math.random() * 3 + 1,
                 speed: Math.random() * 0.5 + 0.5
@@ -178,32 +158,30 @@
         }
 
         function drawSnow() {
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
+            snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            snowCtx.fillStyle = 'white';
+            snowCtx.beginPath();
             snowFlakes.forEach(flake => {
                 ctx.moveTo(flake.x + parallaxOffset, flake.y);
                 ctx.arc(flake.x + parallaxOffset, flake.y, flake.size, 0, Math.PI * 2);
             });
-            ctx.fill();
+            snowCtx.fill();
         }
 
         function updateSnow() {
             for (let i = 0; i < snowFlakes.length; i++) {
                 snowFlakes[i].y += snowFlakes[i].speed;
-                if (snowFlakes[i].y > canvas.height) {
+                if (snowFlakes[i].y > snowCanvas.height) {
                     snowFlakes[i].y = -20;
-                    snowFlakes[i].x = Math.random() * canvas.width;
+                    snowFlakes[i].x = Math.random() * snowCanvas.width;
                 }
             }
         }
 
         function drawTree() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
 
-            updateSnow();
-            drawSnow();
-
-            const xCenter = canvas.width / 2;
+            const xCenter = treeCanvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
 
@@ -215,25 +193,24 @@
                 for (let j = 0; j < row.length; j++) {
                     const char = row[j];
                     if (char !== ' ') {
-                        ctx.fillStyle = colors[char] || 'white';
-                        ctx.fillText(char, x, y);
+                        treeCtx.fillStyle = colors[char] || 'white';
+                        treeCtx.fillText(char, x, y);
                     }
                     x += FONT_SIZE / 2;
                 }
             }
 
             ornaments.forEach(ornament => {
-                ctx.fillStyle = 'white';
-                ctx.font = '15px Arial';
-                ctx.fillText(ornament.symbol, ornament.x, ornament.y);
+                treeCtx.fillStyle = 'white';
+                treeCtx.font = '15px Arial';
+                treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
             });
-
-            parallaxOffset += PARALLAX_SPEED; // Update parallax offset
-
-            requestAnimationFrame(drawTree);
         }
 
         function placeOrnament(symbol) {
             if (usedSymbols.has(symbol)) {
                 decorationInfo.textContent = `${symbol} is already on the tree!`;
-                return
+                return;
+            }
+
+            const xCenter = treeCanvas.width
