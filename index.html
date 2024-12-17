@@ -5,9 +5,151 @@
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-        /* ... existing styles ... */
-        /* No changes in the CSS are required for this new feature */
-    </style>
+         <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000428, #004e92);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            max-width: 350px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button, select {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover, select:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .color-control label {
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        #symbolControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .symbol-button {
+            font-size: 20px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .symbol-button:hover {
+            transform: scale(1.2);
+        }
+
+        .present {
+            position: relative;
+            width: 100px;
+            height: 80px;
+            background-color: #c72c2c;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .present:before, .present:after {
+            content: "";
+            position: absolute;
+            background-color: #c72c2c;
+        }
+
+        .present:before {
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+        }
+
+        .present:after {
+            top: 0;
+            left: -20px;
+            width: 20px;
+            height: 80px;
+        }
+
+        .present:hover {
+            transform: scale(1.1);
+        }
+
+        .present-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #snowCanvas, #glitterCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .effect-button {
+            background-color: #3498db;
+        }
+
+        .effect-active {
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 112, 0.7);
+        }
+
+        #decorationInfo {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #ddd;
+            min-height: 20px;
+        }
+        </style>
 </head>
 <body>
     <canvas id="treeCanvas"></canvas>
