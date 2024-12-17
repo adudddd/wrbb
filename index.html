@@ -4,108 +4,30 @@
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-        body { 
-            margin: 0; 
-            overflow: hidden; 
+        body {
+            margin: 0;
+            overflow: hidden;
             background: linear-gradient(to bottom, #000428, #004e92);
             font-family: 'Arial', sans-serif;
             color: white;
             user-select: none;
         }
+
         #controls {
             position: absolute;
             top: 10px;
             left: 10px;
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
             display: flex;
             flex-direction: column;
             max-width: 300px;
+            z-index: 1000; /* Ensure controls are on top */
         }
-        .control-section {
-            margin-bottom: 10px;
-        }
-        button {
-            margin: 5px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: scale(1.05);
-            background-color: #45a049;
-        }
-        #symbolControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .symbol-button {
-            font-size: 20px;
-            padding: 5px 10px;
-            background-color: rgba(255,255,255,0.2);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .symbol-button:hover {
-            transform: scale(1.2);
-        }
-        #decorationInfo {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ddd;
-        }
-        #presentWrapper {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .present {
-            position: relative;
-            width: 100px;
-            height: 80px;
-            background-color: #c72c2c;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        .present:before {
-            content: "";
-            position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background-color: #c72c2c;
-        }
-        .present:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -20px;
-            width: 20px;
-            height: 80px;
-            background-color: #c72c2c;
-        }
-        .present:hover {
-            transform: scale(1.1);
-        }
-        .present-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-        }
+
+        /* ... rest of CSS styles ... */
+
     </style>
 </head>
 <body>
@@ -113,33 +35,24 @@
     <div id="controls">
         <div class="control-section">
             <h3>Tree Symbol Controls</h3>
-            <input type="text" id="characterInput" placeholder="Enter character (0/1/A/B/C/D/I/*)">
+            <input type="text" id="characterInput" placeholder="Enter character (0/1/*)">
             <input type="color" id="colorPicker">
             <button onclick="changeColor()">Change Color</button>
             <button onclick="randomizeColors()">Randomize Colors</button>
         </div>
-        
+
         <div class="control-section">
             <h3>Ornament Symbols</h3>
             <div id="symbolControls">
-                <!-- Symbol buttons will be dynamically generated -->
             </div>
             <div id="decorationInfo">Click symbols to place them on the tree!</div>
         </div>
     </div>
 
-    <div id="presentWrapper">
-        <div class="present" onclick="openPresent()">
-            <div class="present-text">Click me!</div>
-        </div>
-    </div>
-
     <script>
-        // Global configuration
         const FONT_SIZE = 20;
         const CANVAS_PADDING = 50;
 
-        // Tree Canvas Setup
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
         const characterInput = document.getElementById('characterInput');
@@ -147,49 +60,37 @@
         const symbolControls = document.getElementById('symbolControls');
         const decorationInfo = document.getElementById('decorationInfo');
 
-        // Binary Christmas Tree pattern with star
         const treeData = [
             "        *",
-            "        0",
-            "       101",
-            "      01010",
-            "     101010101",
-            "    0101010101010",
-            "   10101010101010101",
-            "  010101010101010101010",
-            " 1010101010101010101010101",
-            "0101010101010101010101010101",
+            "       010",
+            "      10101",
+            "     0101010",
+            "    101010101",
+            "   01010101010",
+            "  1010101010101",
+            " 010101010101010",
+            "10101010101010101",
             "       101",
             "       101"
         ];
 
-        // Initial color settings
         const colors = {
-            '0': '#2ecc71',   // Green
-            '1': '#e74c3c',   // Red
-            'A': '#3498db',   // Blue
-            'B': '#f39c12',   // Orange
-            'C': '#9b59b6',   // Purple
-            'D': '#1abc9c',   // Turquoise
-            'I': '#34495e',   // Dark Gray
-            '*': '#FFD700'    // Gold for star
+            '0': '#2ecc71', // Green
+            '1': '#e74c3c', // Red
+            '*': '#FFD700'  // Gold for star
         };
 
-        // Available symbols for ornaments
         const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
-
-        // Ornament placement tracking
         const ornaments = [];
         const usedSymbols = new Set();
+        let snowFlakes = [];
 
-        // Configure canvas
         function setupCanvas() {
             ctx.font = `${FONT_SIZE}px monospace`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
         }
 
-        // Resize canvas
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -197,12 +98,10 @@
             drawTree();
         }
 
-        // Initial canvas setup
         setupCanvas();
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Generate symbol buttons
         availableSymbols.forEach(symbol => {
             const symbolButton = document.createElement('div');
             symbolButton.className = 'symbol-button';
@@ -211,8 +110,41 @@
             symbolControls.appendChild(symbolButton);
         });
 
+        function createSnowFlake() {
+            return {
+                x: Math.random() * canvas.width,
+                y: -20,
+                size: Math.random() * 3 + 1,
+                speed: Math.random() * 0.5 + 0.5
+            };
+        }
+
+        function drawSnow() {
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            snowFlakes.forEach(flake => {
+                ctx.moveTo(flake.x, flake.y);
+                ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+            });
+            ctx.fill();
+        }
+
+        function updateSnow() {
+            for (let i = 0; i < snowFlakes.length; i++) {
+                snowFlakes[i].y += snowFlakes[i].speed;
+                if (snowFlakes[i].y > canvas.height) {
+                    snowFlakes[i].y = -20;
+                    snowFlakes[i].x = Math.random() * canvas.width;
+                }
+            }
+        }
+
         function drawTree() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            updateSnow();
+            drawSnow();
+
             const xCenter = canvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
@@ -232,31 +164,28 @@
                 }
             }
 
-            // Draw ornaments
             ornaments.forEach(ornament => {
                 ctx.fillStyle = 'white';
                 ctx.font = '15px Arial';
                 ctx.fillText(ornament.symbol, ornament.x, ornament.y);
             });
+
+            requestAnimationFrame(drawTree);
         }
 
         function placeOrnament(symbol) {
-            // Check if symbol is already used
             if (usedSymbols.has(symbol)) {
                 decorationInfo.textContent = `${symbol} is already on the tree!`;
                 return;
             }
 
-            // Calculate possible ornament positions within the tree area
             const xCenter = canvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
 
-            // Randomly place ornament on the tree
             const randomRow = Math.floor(Math.random() * treeData.length);
             const row = treeData[randomRow];
-            
-            // Find a random non-space position in the row
+
             const validPositions = row.split('').reduce((acc, char, index) => {
                 if (char !== ' ' && char !== '*') acc.push(index);
                 return acc;
@@ -277,33 +206,20 @@
         function changeColor() {
             const character = characterInput.value.toUpperCase();
             const newColor = colorPicker.value;
-            
+
             if (colors.hasOwnProperty(character)) {
                 colors[character] = newColor;
                 drawTree();
             } else {
-                alert('Invalid character! Use 0, 1, A, B, C, D, I, or *');
+                alert('Invalid character! Use 0, 1, or *');
             }
         }
 
         function randomizeColors() {
             Object.keys(colors).forEach(key => {
-                colors[key] = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+                colors[key] = `rgb(<span class="math-inline">\{Math\.random\(\)\*255\},</span>{Math.random()*255},${Math.random()*255})`;
             });
             drawTree();
         }
 
-        function openPresent() {
-            const presentElement = document.querySelector('.present');
-            presentElement.style.transform = 'scale(1.2)';
-            presentElement.querySelector('.present-text').textContent = 'Merry Christmas!';
-            setTimeout(() => {
-                presentElement.style.transform = 'scale(1)';
-            }, 1000);
-        }
-
-        // Initial drawing
-        drawTree();
-    </script>
-</body>
-</html>
+        for(let i = 0; i
