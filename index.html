@@ -23,17 +23,116 @@
             display: flex;
             flex-direction: column;
             max-width: 300px;
-            z-index: 1000; /* Ensure controls are on top */
         }
 
-        /* ... rest of CSS styles ... */
+        .control-section {
+            margin-bottom: 10px;
+        }
 
-        #snowDensity {
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+
+        #symbolControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .symbol-button {
+            font-size: 20px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .symbol-button:hover {
+            transform: scale(1.2);
+        }
+
+        #decorationInfo {
             margin-top: 10px;
+            font-size: 0.8em;
+            color: #ddd;
         }
 
-        #snowDensity label {
-            color: #ddd;
+        #presentWrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .present {
+            position: relative;
+            width: 100px;
+            height: 80px;
+            background-color: #c72c2c;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .present:before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-color: #c72c2c;
+        }
+
+        .present:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -20px;
+            width: 20px;
+            height: 80px;
+            background-color: #c72c2c;
+        }
+
+        .present:hover {
+            transform: scale(1.1);
+        }
+
+        .present-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        #glitterCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -44,7 +143,7 @@
     <div id="controls">
         <div class="control-section">
             <h3>Tree Symbol Controls</h3>
-            <input type="text" id="characterInput" placeholder="Enter character (0/1/*)">
+            <input type="text" id="characterInput" placeholder="Enter character (0/1/A/B/C/D/I/*)">
             <input type="color" id="colorPicker">
             <button onclick="changeColor()">Change Color</button>
             <button onclick="randomizeColors()">Randomize Colors</button>
@@ -53,6 +152,7 @@
         <div class="control-section">
             <h3>Ornament Symbols</h3>
             <div id="symbolControls">
+                <!-- Symbol buttons will be dynamically generated -->
             </div>
             <div id="decorationInfo">Click symbols to place them on the tree!</div>
         </div>
@@ -63,11 +163,6 @@
             <button onclick="addGlitter()">Add Glitter</button>
             <button onclick="resetTree()">Reset Tree</button>
         </div>
-
-        <div class="control-section" id="snowDensity">
-            <label for="snowDensitySlider">Snow Density:</label>
-            <input type="range" id="snowDensitySlider" min="10" max="200" value="100" step="10">
-        </div>
     </div>
 
     <div id="presentWrapper">
@@ -77,14 +172,19 @@
     </div>
 
     <script>
+        // Global configuration
         const FONT_SIZE = 20;
         const CANVAS_PADDING = 50;
-        const PARALLAX_SPEED = 0.05; // Adjust for parallax effect
 
+        // Tree Canvas Setup
         const treeCanvas = document.getElementById('treeCanvas');
         const treeCtx = treeCanvas.getContext('2d');
+
+        // Snowfall Canvas Setup
         const snowCanvas = document.getElementById('snowCanvas');
         const snowCtx = snowCanvas.getContext('2d');
+
+        // Glitter Canvas Setup
         const glitterCanvas = document.getElementById('glitterCanvas');
         const glitterCtx = glitterCanvas.getContext('2d');
 
@@ -92,54 +192,73 @@
         const colorPicker = document.getElementById('colorPicker');
         const symbolControls = document.getElementById('symbolControls');
         const decorationInfo = document.getElementById('decorationInfo');
-        const snowDensitySlider = document.getElementById('snowDensitySlider');
 
+        // Binary Christmas Tree pattern with star
         const treeData = [
             "        *",
-            "       010",
-            "      10101",
-            "     0101010",
-            "    101010101",
-            "   01010101010",
-            "  1010101010101",
-            " 010101010101010",
-            "10101010101010101",
+            "        0",
+            "       101",
+            "      01010",
+            "     101010101",
+            "    0101010101010",
+            "   10101010101010101",
+            "  010101010101010101010",
+            " 1010101010101010101010101",
+            "0101010101010101010101010101",
             "       101",
             "       101"
         ];
 
+        // Initial color settings
         const colors = {
-            '0': '#2ecc71', // Green
-            '1': '#e74c3c', // Red
-            '*': '#FFD700'  // Gold for star
+            '0': '#2ecc71',   // Green
+            '1': '#e74c3c',   // Red
+            'A': '#3498db',   // Blue
+            'B': '#f39c12',   // Orange
+            'C': '#9b59b6',   // Purple
+            'D': '#1abc9c',   // Turquoise
+            'I': '#34495e',   // Dark Gray
+            '*': '#FFD700'    // Gold for star
         };
 
+        // Available symbols for ornaments
         const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
+
+        // Ornament placement tracking
         const ornaments = [];
         const usedSymbols = new Set();
-        let snowFlakes = [];
-        let glitterParticles = [];
-        let parallaxOffset = 0;
 
+        // Snowfall variables
+        let isSnowfallActive = false;
+        const snowflakes = [];
+
+        // Glitter variables
+        let isGlitterActive = false;
+        const glitterParticles = [];
+
+        // Configure canvas
         function setupCanvas() {
             treeCtx.font = `${FONT_SIZE}px monospace`;
             treeCtx.textAlign = "center";
             treeCtx.textBaseline = "middle";
         }
 
+        // Resize canvases
         function resizeCanvases() {
             treeCanvas.width = snowCanvas.width = glitterCanvas.width = window.innerWidth;
             treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
             setupCanvas();
             drawTree();
-            toggleSnowfall(); // Ensure snowfall state is updated on resize
-            toggleGlitter(); // Ensure glitter state is updated on resize
+            toggleSnowfall();
+            toggleGlitter();
         }
 
+        // Initial canvas setup
         setupCanvas();
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
 
+        // Generate symbol buttons
         availableSymbols.forEach(symbol => {
             const symbolButton = document.createElement('div');
             symbolButton.className = 'symbol-button';
@@ -148,39 +267,8 @@
             symbolControls.appendChild(symbolButton);
         });
 
-        function createSnowFlake() {
-            return {
-                x: Math.random() * treeCanvas.width,
-                y: -20,
-                size: Math.random() * 3 + 1,
-                speed: Math.random() * 0.5 + 0.5
-            };
-        }
-
-        function drawSnow() {
-            snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-            snowCtx.fillStyle = 'white';
-            snowCtx.beginPath();
-            snowFlakes.forEach(flake => {
-                ctx.moveTo(flake.x + parallaxOffset, flake.y);
-                ctx.arc(flake.x + parallaxOffset, flake.y, flake.size, 0, Math.PI * 2);
-            });
-            snowCtx.fill();
-        }
-
-        function updateSnow() {
-            for (let i = 0; i < snowFlakes.length; i++) {
-                snowFlakes[i].y += snowFlakes[i].speed;
-                if (snowFlakes[i].y > snowCanvas.height) {
-                    snowFlakes[i].y = -20;
-                    snowFlakes[i].x = Math.random() * snowCanvas.width;
-                }
-            }
-        }
-
         function drawTree() {
             treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
-
             const xCenter = treeCanvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
@@ -200,6 +288,7 @@
                 }
             }
 
+            // Draw ornaments
             ornaments.forEach(ornament => {
                 treeCtx.fillStyle = 'white';
                 treeCtx.font = '15px Arial';
@@ -208,9 +297,164 @@
         }
 
         function placeOrnament(symbol) {
+            // Check if symbol is already used
             if (usedSymbols.has(symbol)) {
                 decorationInfo.textContent = `${symbol} is already on the tree!`;
                 return;
             }
 
-            const xCenter = treeCanvas.width
+            // Calculate possible ornament positions within the tree area
+            const xCenter = treeCanvas.width / 2;
+            const yStart = CANVAS_PADDING;
+            const lineHeight = FONT_SIZE * 1.2;
+
+            // Randomly place ornament on the tree
+            const randomRow = Math.floor(Math.random() * treeData.length);
+            const row = treeData[randomRow];
+
+            // Find a random non-space position in the row
+            const validPositions = row.split('').reduce((acc, char, index) => {
+                if (char !== ' ' && char !== '*') acc.push(index);
+                return acc;
+            }, []);
+
+            if (validPositions.length > 0) {
+                const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
+                const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
+                const y = yStart + randomRow * lineHeight;
+
+                ornaments.push({ x, y, symbol });
+                usedSymbols.add(symbol);
+                decorationInfo.textContent = `${symbol} placed at row ${randomRow + 1}!`;
+                drawTree();
+            }
+        }
+
+        function changeColor() {
+            const character = characterInput.value.toUpperCase();
+            const newColor = colorPicker.value;
+
+            if (colors.hasOwnProperty(character)) {
+                colors[character] = newColor;
+                drawTree();
+            } else {
+                alert('Invalid character! Use 0, 1, A, B, C, D, I, or *');
+            }
+        }
+
+        function randomizeColors() {
+            Object.keys(colors).forEach(key => {
+                colors[key] = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
+            });
+            drawTree();
+        }
+
+        function openPresent() {
+            const presentElement = document.querySelector('.present');
+            presentElement.style.transform = 'scale(1.2)';
+            presentElement.querySelector('.present-text').textContent = 'Merry Christmas!';
+            setTimeout(() => {
+                presentElement.style.transform = 'scale(1)';
+            }, 1000);
+        }
+
+        function createSnowflake() {
+            return {
+                x: Math.random() * treeCanvas.width,
+                y: 0,
+                radius: Math.random() * 3 + 1,
+                speed: Math.random() * 3 + 1
+            };
+        }
+
+        function drawSnowflakes() {
+            snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            snowCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+            snowflakes.forEach((flake, index) => {
+                snowCtx.beginPath();
+                snowCtx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+                snowCtx.fill();
+
+                flake.y += flake.speed;
+
+                // Remove snowflakes that have fallen off screen
+                if (flake.y > snowCanvas.height) {
+                    snowflakes.splice(index, 1);
+                }
+            });
+
+            if (isSnowfallActive) {
+                // Add new snowflakes periodically
+                if (Math.random() < 0.1) {
+                    snowflakes.push(createSnowflake());
+                }
+                requestAnimationFrame(drawSnowflakes);
+            }
+        }
+
+        function toggleSnowfall() {
+            isSnowfallActive = !isSnowfallActive;
+            if (isSnowfallActive) {
+                drawSnowflakes();
+            } else {
+                snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            }
+        }
+
+        function createGlitterParticle() {
+            return {
+                x: Math.random() * treeCanvas.width,
+                y: Math.random() * treeCanvas.height,
+                color: `hsl(${Math.random() * 360}, 100%, 80%)`,
+                radius: Math.random() * 2 + 1,
+                speed: Math.random() * 2 + 1
+            };
+        }
+
+        function drawGlitter() {
+            glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+
+            glitterParticles.forEach((particle, index) => {
+                glitterCtx.beginPath();
+                glitterCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                glitterCtx.fillStyle = particle.color;
+                glitterCtx.fill();
+
+                particle.x += Math.cos(particle.speed) * 2;
+                particle.y += Math.sin(particle.speed) * 2;
+
+                // Remove glitter particles that have gone off-screen
+                if (
+                    particle.x < -particle.radius ||
+                    particle.x > glitterCanvas.width + particle.radius ||
+                    particle.y < -particle.radius ||
+                    particle.y > glitterCanvas.height + particle.radius
+                ) {
+                    glitterParticles.splice(index, 1);
+                }
+            });
+
+            if (isGlitterActive) {
+                // Add new glitter particles periodically
+                if (Math.random() < 0.05) {
+                    glitterParticles.push(createGlitterParticle());
+                }
+                requestAnimationFrame(drawGlitter);
+            }
+        }
+
+             function toggleGlitter() {
+            isGlitterActive = !isGlitterActive;
+            if (isGlitterActive) {
+                // Add an initial batch of glitter particles
+                for (let i = 0; i < 50; i++) {
+                    glitterParticles.push(createGlitterParticle());
+                }
+                drawGlitter();
+            } else {
+                // Clear glitter particles and canvas
+                glitterParticles.length = 0;
+                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+            }
+        }
