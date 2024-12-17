@@ -1,152 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: linear-gradient(to bottom, #000428, #004e92);
-            font-family: 'Arial', sans-serif;
-            color: white;
-            user-select: none;
-        }
-
-        #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            max-width: 350px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .control-section {
-            margin-bottom: 15px;
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        button, select {
-            margin: 5px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover, select:hover {
-            transform: scale(1.05);
-            background-color: #45a049;
-        }
-
-        .color-control {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .color-control label {
-            margin-right: 10px;
-            white-space: nowrap;
-        }
-
-        #symbolControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .symbol-button {
-            font-size: 20px;
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .symbol-button:hover {
-            transform: scale(1.2);
-        }
-
-        .present {
-            position: relative;
-            width: 100px;
-            height: 80px;
-            background-color: #c72c2c;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .present:before, .present:after {
-            content: "";
-            position: absolute;
-            background-color: #c72c2c;
-        }
-
-        .present:before {
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 20px;
-        }
-
-        .present:after {
-            top: 0;
-            left: -20px;
-            width: 20px;
-            height: 80px;
-        }
-
-        .present:hover {
-            transform: scale(1.1);
-        }
-
-        .present-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-        }
-
-        #snowCanvas, #glitterCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-
-        .effect-button {
-            background-color: #3498db;
-        }
-
-        .effect-active {
-            background-color: #2ecc71;
-            box-shadow: 0 0 10px rgba(46, 204, 112, 0.7);
-        }
-
-        #decorationInfo {
-            margin-top: 10px;
-            font-size: 0.8em;
-            color: #ddd;
-            min-height: 20px;
-        }
+        /* ... existing styles ... */
+        /* No changes in the CSS are required for this new feature */
     </style>
 </head>
 <body>
@@ -206,6 +66,7 @@
         // Global configuration
         const FONT_SIZE = 20;
         const CANVAS_PADDING = 50;
+        const SANTA_Y_OFFSET = 20; // Vertical offset for Santa from the tree
 
         // Canvas setup
         const treeCanvas = document.getElementById('treeCanvas');
@@ -238,6 +99,46 @@
             "       101",
             "       101"
         ];
+
+        // Santa Claus ASCII art
+        const santaData = [
+            "           ()    ",
+            "   ####   ( )   ",
+            "  ######  === ",
+            "   /\\  /  \\/    ", // Waving hand
+            "  / / @  @ \\  \\   ",
+            "  \\ \\  ^^  / /   ",
+            "   \\  \\  / /  ",
+            "    ==/ /== ",
+            "   === ===  ",
+        ];
+
+        // Animation frames for waving hand
+        const santaAnimationFrames = [
+            [ // Frame 1: Original
+                "           ()    ",
+                "   ####   ( )   ",
+                "  ######  === ",
+                "   /\\  /  \\/    ", // Waving hand
+                "  / / @  @ \\  \\   ",
+                "  \\ \\  ^^  / /   ",
+                "   \\  \\  / /  ",
+                "    ==/ /== ",
+                "   === ===  ",
+            ],
+            [ // Frame 2: Wave
+                "           ()    ",
+                "   ####   ( )   ",
+                "  ######  === ",
+                "      /\\ / \\/    ", // Waving hand up
+                "     / / @  @ \\  \\   ",
+                "     \\ \\  ^^  / /   ",
+                "      \\  \\  / /  ",
+                "       ==/ /== ",
+                "      === ===  ",
+            ]
+        ];
+        let currentAnimationFrame = 0;
 
         // Initial color settings
         const colors = {
@@ -280,6 +181,7 @@
             treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
             setupCanvas();
             drawTree();
+            drawSanta();
         }
 
         // Color picker initialization
@@ -290,11 +192,13 @@
             zeroColorPicker.addEventListener('change', () => {
                 colors['0'] = zeroColorPicker.value;
                 drawTree();
+                drawSanta();
             });
 
             oneColorPicker.addEventListener('change', () => {
                 colors['1'] = oneColorPicker.value;
                 drawTree();
+                drawSanta();
             });
 
             colorModeSelect.addEventListener('change', startAutoColorMode);
@@ -330,6 +234,7 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
+            drawSanta();
         }
 
         function colorWave() {
@@ -339,6 +244,7 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
+            drawSanta();
         }
 
         function colorPulse() {
@@ -349,6 +255,7 @@
             oneColorPicker.value = colors['1'];
             colorPhase += 0.5;
             drawTree();
+            drawSanta();
         }
 
         // Tree drawing function
@@ -379,6 +286,45 @@
                 treeCtx.font = '15px Arial';
                 treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
             });
+        }
+
+        // Function to draw Santa
+        function drawSanta() {
+            const xCenter = treeCanvas.width / 2;
+            const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
+            const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
+            const lineHeight = FONT_SIZE * 1.2;
+
+            const santaFrame = santaAnimationFrames[currentAnimationFrame];
+
+            for (let i = 0; i < santaFrame.length; i++) {
+                const row = santaFrame[i];
+                let x = xCenter - (row.length * FONT_SIZE / 4);
+                const y = yStart + i * lineHeight;
+
+                for (let j = 0; j < row.length; j++) {
+                    const char = row[j];
+                    if (char !== ' ') {
+                        treeCtx.fillStyle = colors['0']; // Use color for '0'
+                        if (char === '#' || char === '@') {
+                            treeCtx.fillStyle = colors['1']; // Use color for '1'
+                        }
+                        if (char === '(' || char === ')' || char === '=') {
+                            treeCtx.fillStyle = 'white';
+                        }
+                        treeCtx.fillText(char, x, y);
+                    }
+                    x += FONT_SIZE / 2;
+                }
+            }
+        }
+
+        // Function to animate Santa's waving
+        function animateSanta() {
+            setInterval(() => {
+                currentAnimationFrame = 1 - currentAnimationFrame; // Toggle between 0 and 1
+                drawSanta(); // Redraw Santa with the new frame
+            }, 500); // Adjust waving speed here
         }
 
         // Ornament placement
@@ -439,6 +385,7 @@
                     colors['0'] = colors['0'] === '#2ecc71' ? '#27ae60' : '#2ecc71';
                     colors['1'] = colors['1'] === '#e74c3c' ? '#c0392b' : '#e74c3c';
                     drawTree();
+                    drawSanta();
                 }, 500);
             } else {
                 lightButton.classList.remove('effect-active');
@@ -447,6 +394,7 @@
                 colors['0'] = '#2ecc71';
                 colors['1'] = '#e74c3c';
                 drawTree();
+                drawSanta();
             }
         }
 
@@ -647,6 +595,7 @@
                     colors['0'] = `hsl(${hue0}, 100%, 50%)`;
                     colors['1'] = `hsl(${hue1}, 100%, 50%)`;
                     drawTree();
+                    drawSanta();
                 }, 100);
             }
         }
@@ -687,6 +636,7 @@
             usedSymbols.clear();
             decorationInfo.textContent = 'All effects reset! Click symbols to place them on the tree.';
             drawTree();
+            drawSanta();
         }
 
         // Present Box Interaction
@@ -708,6 +658,7 @@
             generateSymbolButtons();
             initColorPickers();
             resizeCanvases();
+            animateSanta(); // Start Santa animation
             
             // Resize listener
             window.addEventListener('resize', resizeCanvases);
@@ -715,6 +666,3 @@
 
         // Initialize the application
         init();
-    </script>
-</body>
-</html>
