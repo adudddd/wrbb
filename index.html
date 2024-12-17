@@ -458,3 +458,26 @@
                 glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
             }
         }
+        // Call this to initialize the tree
+        window.onload = () => {
+            drawTree();
+        };
+
+        function resetTree() {
+            ornaments.length = 0; // Clear ornaments
+            usedSymbols.clear(); // Clear symbols placed
+            isSnowfallActive = false;
+            isGlitterActive = false;
+
+            // Clear all canvases
+            snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
+
+            drawTree();
+            decorationInfo.textContent = "Tree reset! Start decorating again.";
+        }
+    </script>
+</body>
+</html>
+
+        
