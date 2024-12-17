@@ -61,6 +61,51 @@
             font-size: 0.8em;
             color: #ddd;
         }
+        #presentWrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .present {
+            position: relative;
+            width: 100px;
+            height: 80px;
+            background-color: #c72c2c;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .present:before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-color: #c72c2c;
+        }
+        .present:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -20px;
+            width: 20px;
+            height: 80px;
+            background-color: #c72c2c;
+        }
+        .present:hover {
+            transform: scale(1.1);
+        }
+        .present-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -80,6 +125,12 @@
                 <!-- Symbol buttons will be dynamically generated -->
             </div>
             <div id="decorationInfo">Click symbols to place them on the tree!</div>
+        </div>
+    </div>
+
+    <div id="presentWrapper">
+        <div class="present" onclick="openPresent()">
+            <div class="present-text">Click me!</div>
         </div>
     </div>
 
@@ -240,6 +291,15 @@
                 colors[key] = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
             });
             drawTree();
+        }
+
+        function openPresent() {
+            const presentElement = document.querySelector('.present');
+            presentElement.style.transform = 'scale(1.2)';
+            presentElement.querySelector('.present-text').textContent = 'Merry Christmas!';
+            setTimeout(() => {
+                presentElement.style.transform = 'scale(1)';
+            }, 1000);
         }
 
         // Initial drawing
