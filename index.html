@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-        body {
+       body {
             margin: 0;
             overflow: hidden;
             background: linear-gradient(to bottom, #000428, #004e92);
@@ -195,6 +195,43 @@
             align-items: center;
             margin-top: 10px;
         }
+
+       .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        #controls .control-section:nth-child(3) {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr); /* Two columns grid */
+          gap: 10px; /* Space between grid items */
+        }
+
+        #controls .control-section:nth-child(3) button {
+          width: auto; /* Adjust width as needed */
+          margin: 0; /* Remove default margin */
+        }
     </style>
 </head>
 
@@ -202,7 +239,13 @@
     <canvas id="treeCanvas"></canvas>
     <canvas id="snowCanvas"></canvas>
     <canvas id="glitterCanvas"></canvas>
-    
+    <audio id="christmasAudio" loop>
+        <source src="YOUR_CHRISTMAS_MUSIC_URL" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="ornamentSound" src="YOUR_ORNAMENT_SOUND_URL"></audio>
+    <audio id="presentSound" src="YOUR_PRESENT_SOUND_URL"></audio>
+    <audio id="easterEggSound" src="YOUR_EASTER_EGG_SOUND_URL"></audio>
     <div id="controls">
         <div class="control-section">
             <h3>🎨 Color Controls</h3>
@@ -216,13 +259,14 @@
             </div>
             
             <div class="color-control">
-                <label>Auto Color Mode:</label>
-                <select id="colorModeSelect">
-                    <option value="none">Off</option>
-                    <option value="random">Random Shifts</option>
-                    <option value="wave">Color Wave</option>
-                    <option value="pulse">Color Pulse</option>
-                </select>
+              <label>Auto Color Mode:</label>
+              <select id="colorModeSelect">
+                <option value="none">Off</option>
+                <option value="random">Random Shifts</option>
+                <option value="wave">Color Wave</option>
+                <option value="pulse">Color Pulse</option>
+                <option value="rainbow">Rainbow Mode</option>
+              </select>
             </div>
         </div>
 
@@ -236,16 +280,57 @@
 
         <div class="control-section">
             <h3>✨ Tree Magic Effects</h3>
-            <button class="effect-button" onclick="toggleLightEffect()">🎄 Tree Lights</button>
-            <button class="effect-button" onclick="toggleSparkleEffect()">✨ Sparkle</button>
-            <button class="effect-button" onclick="toggleSnowfall()">❄️ Snowfall</button>
-            <button class="effect-button" onclick="toggleGlitterEffect()">🌟 Glitter</button>
-            <button class="effect-button" onclick="toggleColorWave()">🌈 Color Wave</button>
-            <button class="effect-button" onclick="toggleOrnamentSparkle()">✨ Ornament Sparkle</button>
-            <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleLightEffect()">🎄 Tree Lights</button>
+                <span class="tooltiptext">Toggles the tree lights on/off</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleSparkleEffect()">✨ Sparkle</button>
+                <span class="tooltiptext">Adds a sparkle effect to the tree</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleSnowfall()">❄️ Snowfall</button>
+                <span class="tooltiptext">Starts/stops the snowfall effect</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleGlitterEffect()">🌟 Glitter</button>
+                <span class="tooltiptext">Adds a glitter effect</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleColorWave()">🌈 Color Wave</button>
+                <span class="tooltiptext">Activates a color wave effect</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleOrnamentSparkle()">✨ Ornament Sparkle</button>
+                <span class="tooltiptext">Makes the ornaments sparkle</span>
+            </div>
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleOrnamentRotation()">🔄 Ornament Rotation</button>
+                <span class="tooltiptext">Makes the ornaments rotate</span>
+            </div>
+            <div class="tooltip">
+                <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
+                <span class="tooltiptext">Resets all effects to their default state</span>
+            </div>
+
+            
         </div>
     </div>
-
+     <div id="musicPlayer">
+        <button onclick="toggleMusic()">Play Music</button>
+        <div id="sound-control">
+            <label for="volumeSlider">Volume:</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+        </div>
+    </div>
+    <div class="easter-egg" onclick="activateEasterEgg()">
+        🎄 Find the Easter Egg!
+    </div>
     <div id="presentWrapper">
         <div class="present" id="presentBox">
             <div class="present-text">Click me!</div>
@@ -257,6 +342,7 @@
         const FONT_SIZE = 20;
         const CANVAS_PADDING = 50;
         const SANTA_Y_OFFSET = 10; // Vertical offset for Santa from the tree
+        const accumulatedSnow = [];
 
         // Canvas setup
         const treeCanvas = document.getElementById('treeCanvas');
@@ -273,6 +359,11 @@
         const presentBox = document.getElementById('presentBox');
         const symbolControls = document.getElementById('symbolControls');
         const decorationInfo = document.getElementById('decorationInfo');
+        const musicPlayer = document.getElementById('christmasAudio');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const ornamentSound = document.getElementById('ornamentSound');
+        const presentSound = document.getElementById('presentSound');
+        const easterEggSound = document.getElementById('easterEggSound');
 
         // Binary Christmas Tree pattern with star
         const treeData = [
@@ -320,7 +411,7 @@
         let colorPhase = 0;
 
         // Available symbols for ornaments
-        const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦'];
+        const availableSymbols = ['★', '❄', '♥', '☀', '✿', '♫', '✮', '◈', '✦','🎄','🎁','🎅','🦌','⛄','🧦'];
 
         // Ornament placement tracking
         const ornaments = [];
@@ -333,6 +424,7 @@
         let isSparkleEffectActive = false;
         let isGlitterEffectActive = false;
         let isOrnamentSparkleActive = false;
+        let isOrnamentRotationActive = false;
         let colorWaveInterval = null;
         let ornamentSparkleInterval = null;
 
@@ -393,6 +485,9 @@
                 case 'pulse':
                     colorModeInterval = setInterval(colorPulse, 500);
                     break;
+                case 'rainbow':
+                  colorModeInterval = setInterval(rainbowMode, 100);
+                  break;
                 default:
                     // Stop auto color mode
                     break;
@@ -429,6 +524,16 @@
             drawSanta();
         }
 
+        function rainbowMode() {
+            colorPhase = (colorPhase + 1) % 360;
+            colors['0'] = `hsl(${colorPhase}, 100%, 50%)`;
+            colors['1'] = `hsl(${(colorPhase + 180) % 360}, 100%, 50%)`;
+            zeroColorPicker.value = colors['0'];
+            oneColorPicker.value = colors['1'];
+            drawTree();
+            drawSanta();
+        }
+
         // Tree drawing function
         function drawTree() {
             treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
@@ -451,17 +556,29 @@
                     x += FONT_SIZE / 2;
                 }
             }
+            drawOrnaments();
+        }
 
-            // Draw ornaments
+        function drawOrnaments() {
             ornaments.forEach(ornament => {
+              treeCtx.save(); // Save current state
+              treeCtx.translate(ornament.x, ornament.y); // Translate to ornament position
+
+              // Apply rotation if active
+              if (isOrnamentRotationActive) {
+                treeCtx.rotate(ornament.rotation);
+              }
+
               treeCtx.fillStyle = ornamentColors[ornament.symbol] || "white"; // Use specific color for each ornament
               if (isOrnamentSparkleActive) {
                 // Apply sparkle effect if active
                 treeCtx.globalAlpha = Math.random() * 0.5 + 0.5; // Varying opacity for sparkle effect
               }
               treeCtx.font = "15px Arial";
-              treeCtx.fillText(ornament.symbol, ornament.x, ornament.y);
+              treeCtx.fillText(ornament.symbol, 0, 0); // Draw relative to translated origin
               treeCtx.globalAlpha = 1; // Reset opacity
+
+              treeCtx.restore(); // Restore to original state
             });
         }
 
@@ -518,7 +635,10 @@
                 const symbolButton = document.createElement('div');
                 symbolButton.className = 'symbol-button';
                 symbolButton.textContent = symbol;
-                symbolButton.addEventListener('click', () => placeOrnament(symbol));
+                symbolButton.addEventListener('click', () => {
+                    placeOrnament(symbol);
+                    ornamentSound.play(); 
+                });
                 symbolControls.appendChild(symbolButton);
             });
         }
@@ -550,7 +670,7 @@
                 const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
                 const y = yStart + randomRow * lineHeight;
 
-                ornaments.push({ x, y, symbol });
+                ornaments.push({ x, y, symbol, rotation: 0 });
                 usedSymbols.add(symbol);
                 decorationInfo.textContent = `${symbol} placed at row ${randomRow + 1}!`;
                 
@@ -559,6 +679,25 @@
                   "#" + Math.floor(Math.random() * 16777215).toString(16); // Generate random hex color
 
                 drawTree();
+            }
+        }
+
+        function toggleOrnamentRotation() {
+            const ornamentRotationButton = document.querySelector(
+              'button[onclick="toggleOrnamentRotation()"]'
+            );
+            isOrnamentRotationActive = !isOrnamentRotationActive;
+
+            if (isOrnamentRotationActive) {
+              ornamentRotationButton.classList.add("effect-active");
+              setInterval(() => {
+                ornaments.forEach((ornament) => {
+                  ornament.rotation += 0.02; // Increment rotation
+                });
+                drawTree();
+              }, 50);
+            } else {
+              ornamentRotationButton.classList.remove("effect-active");
             }
         }
         
@@ -676,20 +815,22 @@
 
         function startSnowfall() {
             function createSnowflake() {
-                return {
+                const flake = {
                     x: Math.random() * snowCanvas.width,
                     y: 0,
                     radius: Math.random() * 3 + 1,
                     speedY: Math.random() * 3 + 1,
-                    speedX: Math.random() * 1 - 0.5
+                    speedX: Math.random() * 1 - 0.5,
+                    opacity: Math.random() * 0.5 + 0.5
                 };
+                return flake;
             }
 
             function animateSnowfall() {
                 if (!isSnowfallActive) return;
 
                 snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-                
+
                 // Add new snowflakes
                 if (snowflakes.length < 100) {
                     snowflakes.push(createSnowflake());
@@ -698,296 +839,29 @@
                 snowflakes.forEach((flake, index) => {
                     snowCtx.beginPath();
                     snowCtx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
-                    snowCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    snowCtx.fillStyle = `rgba(255, 255, 255, ${flake.opacity})`;
                     snowCtx.fill();
 
                     flake.y += flake.speedY;
                     flake.x += flake.speedX;
 
-                    // Remove snowflakes that are out of bounds
-                    if (flake.y > snowCanvas.height) {
+                    // Check if snowflake is near the bottom or on accumulated snow
+                    if (flake.y + flake.radius >= snowCanvas.height || isCollidingWithSnow(flake)) {
+                        accumulatedSnow.push(flake);
                         snowflakes.splice(index, 1);
                     }
                 });
 
+                // Draw accumulated snow
+                drawAccumulatedSnow();
+
                 requestAnimationFrame(animateSnowfall);
             }
-
-            animateSnowfall();
-        }
-
-        // Glitter Effect
-        function toggleGlitterEffect() {
-            const glitterButton = document.querySelector('button[onclick="toggleGlitterEffect()"]');
-            isGlitterEffectActive = !isGlitterEffectActive;
-
-            if (isGlitterEffectActive) {
-                glitterButton.classList.add('effect-active');
-                startGlitterEffect();
-            } else {
-                glitterButton.classList.remove('effect-active');
-                glitterParticles.length = 0;
-                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
-            }
-        }
-
-        function startGlitterEffect() {
-            function createGlitterParticle() {
-                return {
-                    x: Math.random() * glitterCanvas.width,
-                    y: Math.random() * glitterCanvas.height,
-                    radius: Math.random() * 2 + 1,
-                    color: `hsl(${Math.random() * 360}, 100%, 80%)`,
-                    opacity: 1,
-                    shrinking: false
-                };
-            }
-
-            function animateGlitter() {
-                if (!isGlitterEffectActive) return;
-
-                glitterCtx.clearRect(0, 0, glitterCanvas.width, glitterCanvas.height);
-                
-                // Add new glitter particles
-                if (glitterParticles.length < 50) {
-                    glitterParticles.push(createGlitterParticle());
-                }
-
-                glitterParticles.forEach((particle, index) => {
-                    glitterCtx.beginPath();
-                    glitterCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-                    glitterCtx.fillStyle = particle.color;
-                    glitterCtx.globalAlpha = particle.opacity;
-                    glitterCtx.fill();
-                    glitterCtx.globalAlpha = 1;
-
-                    // Particle animation
-                    if (particle.shrinking) {
-                        particle.radius -= 0.1;
-                        particle.opacity -= 0.05;
-                    } else {
-                        particle.radius += 0.1;
-                        particle.opacity -= 0.02;
-                    }
-
-                    if (particle.radius <= 0 || particle.opacity <= 0) {
-                        glitterParticles.splice(index, 1);
-                    }
-
-                    particle.shrinking = particle.radius > 3;
-                });
-
-                requestAnimationFrame(animateGlitter);
-            }
-
-            animateGlitter();
-        }
-
-        // Color Wave Effect
-        function toggleColorWave() {
-            const colorWaveButton = document.querySelector('button[onclick="toggleColorWave()"]');
             
-            if (colorWaveInterval) {
-                clearInterval(colorWaveInterval);
-                colorWaveInterval = null;
-                colorWaveButton.classList.remove('effect-active');
-                // Reset colors
-                colors['0'] = '#2ecc71';
-                colors['1'] = '#e74c3c';
-                drawTree();
-            } else {
-                colorWaveButton.classList.add('effect-active');
-                colorWaveInterval = setInterval(() => {
-                    const hue0 = (Date.now() / 10) % 360;
-                    const hue1 = (Date.now() / 10 + 180) % 360;
-                    colors['0'] = `hsl(${hue0}, 100%, 50%)`;
-                    colors['1'] = `hsl(${hue1}, 100%, 50%)`;
-                    drawTree();
-                    drawSanta();
-                }, 100);
-            }
-        }
-
-        // Reset all effects
-        function resetAllEffects() {
-            // Light Effect
-            if (isLightEffectActive) {
-                toggleLightEffect();
-            }
-            
-            // Sparkle Effect
-            if (isSparkleEffectActive) {
-                toggleSparkleEffect();
-            }
-            
-            // Snowfall
-            if (isSnowfallActive) {
-                toggleSnowfall();
-            }
-            
-            // Glitter
-            if (isGlitterEffectActive) {
-                toggleGlitterEffect();
-            }
-            
-            // Color Wave
-            if (colorWaveInterval) {
-                toggleColorWave();
-            }
-
-            // Ornament Sparkle
-            if (isOrnamentSparkleActive) {
-              toggleOrnamentSparkle();
-            }
-            
-            // Reset color mode
-            colorModeSelect.value = 'none';
-            startAutoColorMode();
-            
-            // Remove all ornaments
-            ornaments.length = 0;
-            usedSymbols.clear();
-            decorationInfo.textContent = 'All effects reset! Click symbols to place them on the tree.';
-            drawTree();
-            drawSanta();
-        }
-
-        // Present Box Interaction
-        presentBox.addEventListener('click', () => {
-            const symbolInfo = [
-                'Ho Ho Ho! 🎅',
-                'Merry Christmas! 🎄', 
-                'Enjoy the Magic! ✨', 
-                'Spread Joy! 🎁', 
-                'Winter Wonderland! ❄️'
-            ];
-            
-            presentBox.querySelector('.present-text').textContent = 
-                symbolInfo[Math.floor(Math.random() * symbolInfo.length)];
-        });
-
-        // Initial setup
-        function init() {
-            generateSymbolButtons();
-            initColorPickers();
-            resizeCanvases();
-            
-            // Resize listener
-            window.addEventListener('resize', resizeCanvases);
-        }
-
- function activateEasterEgg() {
-            // Intense color and movement transformation
-            const originalColors = { ...colors };
-            const originalTreeData = [...treeData];
-
-            // Wild color shifts
-            function wildColorShift() {
-                colors['0'] = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                colors['1'] = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                drawTree();
-            }
-
-            // Transform tree structure
-            function transformTree() {
-                treeData.length = 0;
-                const shapes = [
-                    "        ✦",
-                    "       ★★★",
-                    "      ✿✦✿",
-                    "     ★✦★✦★",
-                    "    ✿★✦✦✦★✿",
-                    "   ★✿✦✦✦✦✦★✿",
-                    "  ✦★✿✦✦✦✦✦✦★✿",
-                    " ★✿✦✦✦✦✦✦✦✦✦★"
-                ];
-                treeData.push(...shapes);
-                drawTree();
-            }
-
-            // Ornament Dance
-            function ornamentDance() {
-                ornaments.forEach(ornament => {
-                    treeCtx.save();
-                    treeCtx.translate(ornament.x, ornament.y);
-                    treeCtx.rotate(Math.sin(Date.now() / 100) * Math.PI / 6);
-                    treeCtx.fillText(ornament.symbol, 0, 0);
-                    treeCtx.restore();
-                });
-            }
-
-            // Crazy effects
-            const crazyInterval = setInterval(() => {
-                wildColorShift();
-                transformTree();
-            }, 500);
-
-            // Revert after 10 seconds
-            setTimeout(() => {
-                clearInterval(crazyInterval);
-                colors['0'] = originalColors['0'];
-                colors['1'] = originalColors['1'];
-                treeData.length = 0;
-                treeData.push(...originalTreeData);
-                drawTree();
-            }, 10000);
-        }
-
-        // Star Shimmer Effect
-        function addStarShimmerEffect() {
-            const starRow = treeData.findIndex(row => row.includes('*'));
-            if (starRow !== -1) {
-                const starIndex = treeData[starRow].indexOf('*');
-                const xCenter = treeCanvas.width / 2;
-                const yStart = CANVAS_PADDING;
-                const lineHeight = FONT_SIZE * 1.2;
-
-                const starX = xCenter - (treeData[starRow].length * FONT_SIZE / 4) + starIndex * (FONT_SIZE / 2);
-                const starY = yStart + starRow * lineHeight;
-
-                treeCtx.save();
-                treeCtx.shadowColor = 'gold';
-                treeCtx.shadowBlur = 20;
-                treeCtx.fillStyle = colors['*'];
-                treeCtx.fillText('*', starX, starY);
-                treeCtx.restore();
-            }
-        }
-
-        // Modify existing drawTree function to include star shimmer
-        const originalDrawTree = drawTree;
-        drawTree = function() {
-            originalDrawTree();
-            addStarShimmerEffect();
-        };
-
-        // Modify placeOrnament to add dancing animation
-        const originalPlaceOrnament = placeOrnament;
-        placeOrnament = function(symbol) {
-            originalPlaceOrnament(symbol);
-            
-            // Add a quick dance to the newly placed ornament
-            const lastOrnament = ornaments[ornaments.length - 1];
-            if (lastOrnament) {
-                let angle = 0;
-                const danceInterval = setInterval(() => {
-                    drawTree();
-                    treeCtx.save();
-                    treeCtx.translate(lastOrnament.x, lastOrnament.y);
-                    treeCtx.rotate(Math.sin(angle) * Math.PI / 6);
-                    treeCtx.fillText(lastOrnament.symbol, 0, 0);
-                    treeCtx.restore();
-                    angle += 0.5;
-                    
-                    if (angle > Math.PI * 2) {
-                        clearInterval(danceInterval);
-                        drawTree();
-                    }
-                }, 50);
-            }
-        };
-        // Initialize the application
-        init();
-    </script>
-</body>
-</html>
+            function isCollidingWithSnow(flake) {
+                for (let i = 0; i < accumulatedSnow.length; i++) {
+                    const other = accumulatedSnow[i];
+                    const distance = Math.sqrt((flake.x - other.x) ** 2 + (flake.y - other.y) ** 2);
+                    if (distance < flake.radius + other.radius) {
+                        return true;
+                       
