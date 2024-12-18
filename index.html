@@ -148,8 +148,56 @@
             color: #ddd;
             min-height: 20px;
         }
+@keyframes ornamentDance {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        @keyframes starShimmer {
+            0%, 100% { text-shadow: 0 0 5px gold, 0 0 10px gold; }
+            50% { text-shadow: 0 0 15px gold, 0 0 20px gold; }
+        }
+
+        .easter-egg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .easter-egg:hover {
+            transform: scale(1.1);
+            background-color: rgba(255,255,255,0.4);
+        }
+
+        #musicPlayer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #musicPlayer button {
+            margin-right: 10px;
+        }
+
+        #sound-control {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
+
 <body>
     <canvas id="treeCanvas"></canvas>
     <canvas id="snowCanvas"></canvas>
@@ -828,6 +876,116 @@
             window.addEventListener('resize', resizeCanvases);
         }
 
+ function activateEasterEgg() {
+            // Intense color and movement transformation
+            const originalColors = { ...colors };
+            const originalTreeData = [...treeData];
+
+            // Wild color shifts
+            function wildColorShift() {
+                colors['0'] = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                colors['1'] = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                drawTree();
+            }
+
+            // Transform tree structure
+            function transformTree() {
+                treeData.length = 0;
+                const shapes = [
+                    "        ✦",
+                    "       ★★★",
+                    "      ✿✦✿",
+                    "     ★✦★✦★",
+                    "    ✿★✦✦✦★✿",
+                    "   ★✿✦✦✦✦✦★✿",
+                    "  ✦★✿✦✦✦✦✦✦★✿",
+                    " ★✿✦✦✦✦✦✦✦✦✦★"
+                ];
+                treeData.push(...shapes);
+                drawTree();
+            }
+
+            // Ornament Dance
+            function ornamentDance() {
+                ornaments.forEach(ornament => {
+                    treeCtx.save();
+                    treeCtx.translate(ornament.x, ornament.y);
+                    treeCtx.rotate(Math.sin(Date.now() / 100) * Math.PI / 6);
+                    treeCtx.fillText(ornament.symbol, 0, 0);
+                    treeCtx.restore();
+                });
+            }
+
+            // Crazy effects
+            const crazyInterval = setInterval(() => {
+                wildColorShift();
+                transformTree();
+            }, 500);
+
+            // Revert after 10 seconds
+            setTimeout(() => {
+                clearInterval(crazyInterval);
+                colors['0'] = originalColors['0'];
+                colors['1'] = originalColors['1'];
+                treeData.length = 0;
+                treeData.push(...originalTreeData);
+                drawTree();
+            }, 10000);
+        }
+
+        // Star Shimmer Effect
+        function addStarShimmerEffect() {
+            const starRow = treeData.findIndex(row => row.includes('*'));
+            if (starRow !== -1) {
+                const starIndex = treeData[starRow].indexOf('*');
+                const xCenter = treeCanvas.width / 2;
+                const yStart = CANVAS_PADDING;
+                const lineHeight = FONT_SIZE * 1.2;
+
+                const starX = xCenter - (treeData[starRow].length * FONT_SIZE / 4) + starIndex * (FONT_SIZE / 2);
+                const starY = yStart + starRow * lineHeight;
+
+                treeCtx.save();
+                treeCtx.shadowColor = 'gold';
+                treeCtx.shadowBlur = 20;
+                treeCtx.fillStyle = colors['*'];
+                treeCtx.fillText('*', starX, starY);
+                treeCtx.restore();
+            }
+        }
+
+        // Modify existing drawTree function to include star shimmer
+        const originalDrawTree = drawTree;
+        drawTree = function() {
+            originalDrawTree();
+            addStarShimmerEffect();
+        };
+
+        // Modify placeOrnament to add dancing animation
+        const originalPlaceOrnament = placeOrnament;
+        placeOrnament = function(symbol) {
+            originalPlaceOrnament(symbol);
+            
+            // Add a quick dance to the newly placed ornament
+            const lastOrnament = ornaments[ornaments.length - 1];
+            if (lastOrnament) {
+                let angle = 0;
+                const danceInterval = setInterval(() => {
+                    drawTree();
+                    treeCtx.save();
+                    treeCtx.translate(lastOrnament.x, lastOrnament.y);
+                    treeCtx.rotate(Math.sin(angle) * Math.PI / 6);
+                    treeCtx.fillText(lastOrnament.symbol, 0, 0);
+                    treeCtx.restore();
+                    angle += 0.5;
+                    
+                    if (angle > Math.PI * 2) {
+                        clearInterval(danceInterval);
+                        drawTree();
+                    }
+                }, 50);
+            }
+        };
         // Initialize the application
         init();
     </script>
