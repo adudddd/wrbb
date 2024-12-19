@@ -1,3 +1,6 @@
+You're right, there were a few things I overlooked in the previous responses regarding how the effects interacted with Santa and the reindeer. I've corrected those issues now.
+
+Here's the complete code with the improved reindeer, the Santa and reindeer animation, and fixes to make sure effects work correctly:
 
 <!DOCTYPE html>
 <html lang="en">
@@ -314,6 +317,22 @@
                 <span class="tooltiptext">Makes the ornaments rotate</span>
             </div>
             <div class="tooltip">
+                <button class="effect-button" onclick="toggleRainbowOrnaments()">🌈 Rainbow Ornaments</button>
+                <span class="tooltiptext">Makes ornaments cycle through rainbow colors</span>
+            </div>
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleMatrixRain()">💻 Matrix Rain</button>
+                <span class="tooltiptext">Activates the Matrix digital rain effect</span>
+            </div>
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleTreeSwaying()">🌬️ Tree Swaying</button>
+                <span class="tooltiptext">Makes the tree branches sway gently</span>
+            </div>
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleFlyingSanta()">🎅 Flying Santa</button>
+                <span class="tooltiptext">Starts Santa and his reindeer flying across the screen</span>
+            </div>
+            <div class="tooltip">
                 <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
                 <span class="tooltiptext">Resets all effects to their default state</span>
             </div>
@@ -344,6 +363,35 @@
         const SANTA_Y_OFFSET = 10; // Vertical offset for Santa from the tree
         const accumulatedSnow = [];
         let ornamentRotationIntervals = {};
+        let rainbowOrnamentIntervals = {};
+        let isMatrixRainActive = false;
+        let matrixColumns = [];
+        let swayAngle = 0;
+        let isSwaying = false;
+
+        // Flying Santa variables
+        const santaAndReindeerData = [
+          "                                   / \\__        ", // Reindeer start further right
+          "                                   \\/`   \\     ",
+          "                                    | 0 0 \\   ",
+          "    _.--.                          \\  --  \\  ", // Santa's hat aligns with reindeer
+          "  .'  /  |                         /`----'\\  ",
+          " /  .-. .-. \\                      /          \\ ", // Reindeer body continues
+          " | ( o ) ( o ) |                    |            | ", // behind Santa
+          " \\   `-'   /                  \\  ||    ||  / ",
+          "  `,-----,'                  \\_||____||_/  ",
+          "   |  / \\  |                    ||    ||     ",
+          "   |  \\ /  |                    ||    ||     ",
+          "  /    |    \\                    ^^    ^^     ", // Reindeer feet end here
+          " /____/ \\____\\                               ",
+          "(____/   \\____)                              ",
+        ];
+
+        let santaX = -500; // Initial position off-screen to the left
+        let santaYSleigh = 50; // Vertical position of Santa's sleigh
+        let isFlyingSanta = false;
+        let santaAnimationInterval = null;
+        const sleighSpeed = 2; // Adjust for faster/slower movement
 
         // Canvas setup
         const treeCanvas = document.getElementById('treeCanvas');
@@ -380,24 +428,6 @@
             "0101010101010101010101010101",
             "       101",
             "       101"
-        ];
-
-        // Santa Claus ASCII art
-        const santaData = [
-          "          ,.,          ",
-          "         /  \\         ",
-          "        |    |        ",
-          "        |    |        ",
-          "    _.--''--._    ",
-          "   /  .-. .-. \\   ",
-          "   | ( o ) ( o ) |   ",
-          "   \\   `-'   /   ",
-          "    `,-----,'    ",
-          "     |  / \\  |     ",
-          "     |  \\ /  |     ",
-          "    /    |    \\    ",
-          "   /____/ \\____\\   ",
-          "  (____/   \\____)  ",
         ];
 
         // Initial color settings
@@ -445,7 +475,9 @@
             treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
             setupCanvas();
             drawTree();
-            drawSanta();
+            if (!isFlyingSanta) {
+              drawSanta(); // Only draw stationary Santa if flying animation is not active
+            }
         }
 
         // Color picker initialization
@@ -456,13 +488,17 @@
             zeroColorPicker.addEventListener('change', () => {
                 colors['0'] = zeroColorPicker.value;
                 drawTree();
-                drawSanta();
+                if (!isFlyingSanta) {
+                    drawSanta(); // Redraw Santa only if not in flying mode
+                  }
             });
 
             oneColorPicker.addEventListener('change', () => {
                 colors['1'] = oneColorPicker.value;
                 drawTree();
-                drawSanta();
+                if (!isFlyingSanta) {
+                    drawSanta(); // Redraw Santa only if not in flying mode
+                  }
             });
 
             colorModeSelect.addEventListener('change', startAutoColorMode);
@@ -501,7 +537,9 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
-            drawSanta();
+            if (!isFlyingSanta) {
+                drawSanta(); // Redraw Santa only if not in flying mode
+            }
         }
 
         function colorWave() {
@@ -511,7 +549,9 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
-            drawSanta();
+            if (!isFlyingSanta) {
+                drawSanta(); // Redraw Santa only if not in flying mode
+            }
         }
 
         function colorPulse() {
@@ -522,7 +562,9 @@
             oneColorPicker.value = colors['1'];
             colorPhase += 0.5;
             drawTree();
-            drawSanta();
+            if (!isFlyingSanta) {
+                drawSanta(); // Redraw Santa only if not in flying mode
+            }
         }
 
         function rainbowMode() {
@@ -532,7 +574,9 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
-            drawSanta();
+            if (!isFlyingSanta) {
+                drawSanta(); // Redraw Santa only if not in flying mode
+            }
         }
 
         // Tree drawing function
@@ -542,96 +586,274 @@
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
 
-            // Draw the tree
+            if (isMatrixRainActive) {
+                animateMatrixRain(); // Draw Matrix rain behind the tree
+            } else {
+                treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+            }
+
+            if (isSwaying) {
+              swayAngle = Math.sin(Date.now() * 0.01) * 0.05;
+            } else {
+              swayAngle = 0;
+            }
+
+            // Draw the tree with swaying effect
             for (let i = 0; i < treeData.length; i++) {
                 const row = treeData[i];
-                let x = xCenter - (row.length * FONT_SIZE / 4);
                 const y = yStart + i * lineHeight;
 
                 for (let j = 0; j < row.length; j++) {
                     const char = row[j];
                     if (char !== ' ') {
-                        treeCtx.fillStyle = colors[char] || 'white';
+                        // Apply color modes
+                        if (colorModeInterval) {
+                          if (char === "0") {
+                            treeCtx.fillStyle = colors["0"];
+                          } else if (char === "1") {
+                            treeCtx.fillStyle = colors["1"];
+                          } else if (char === "*") {
+                            treeCtx.fillStyle = colors["*"];
+                          }
+                        } else {
+                          treeCtx.fillStyle = colors[char] || "white";
+                        }
+
+                        // Calculate sway offset
+                        const swayOffset =
+                          Math.sin(j * 0.5 + swayAngle) *
+                          FONT_SIZE *
+                          (i / treeData.length);
+                        const x =
+                          xCenter -
+                          (row.length * FONT_SIZE / 4) +
+                          j * (FONT_SIZE / 2) +
+                          swayOffset;
+
                         treeCtx.fillText(char, x, y);
                     }
-                    x += FONT_SIZE / 2;
                 }
             }
             drawOrnaments();
         }
 
         function drawOrnaments() {
-            ornaments.forEach(ornament => {
-              treeCtx.save(); // Save current state
-              treeCtx.translate(ornament.x, ornament.y); // Translate to ornament position
+            ornaments.forEach((ornament) => {
+              treeCtx.save();
+              treeCtx.translate(ornament.x, ornament.y);
 
-              // Apply rotation if active
               if (isOrnamentRotationActive) {
                 treeCtx.rotate(ornament.rotation);
               }
 
-              treeCtx.fillStyle = ornamentColors[ornament.symbol] || "white"; // Use specific color for each ornament
-              if (isOrnamentSparkleActive) {
-                // Apply sparkle effect if active
-                treeCtx.globalAlpha = Math.random() * 0.5 + 0.5; // Varying opacity for sparkle effect
+              // Rainbow effect for individual ornaments
+              if (ornament.isRainbow) {
+                treeCtx.fillStyle = `hsl(${ornament.hue}, 100%, 50%)`;
+              } else {
+                treeCtx.fillStyle = ornamentColors[ornament.symbol] || "white";
               }
-              treeCtx.font = "15px Arial";
-              treeCtx.fillText(ornament.symbol, 0, 0); // Draw relative to translated origin
-              treeCtx.globalAlpha = 1; // Reset opacity
 
-              treeCtx.restore(); // Restore to original state
+              if (isOrnamentSparkleActive) {
+                treeCtx.globalAlpha = Math.random() * 0.5 + 0.5;
+              }
+
+              treeCtx.font = "15px Arial";
+              treeCtx.fillText(ornament.symbol, 0, 0);
+              treeCtx.globalAlpha = 1;
+
+              treeCtx.restore();
             });
+        }
+
+        function toggleRainbowOrnaments() {
+            const rainbowOrnamentButton = document.querySelector(
+              'button[onclick="toggleRainbowOrnaments()"]'
+            );
+            const isRainbowActive =
+              rainbowOrnamentButton.classList.contains("effect-active");
+
+            if (!isRainbowActive) {
+              rainbowOrnamentButton.classList.add("effect-active");
+
+              ornaments.forEach((ornament) => {
+                ornament.isRainbow = true;
+                ornament.hue = 0;
+
+                rainbowOrnamentIntervals[ornament.symbol] = setInterval(() => {
+                  ornament.hue = (ornament.hue + 5) % 360;
+                  drawTree();
+                }, 100);
+              });
+            } else {
+              rainbowOrnamentButton.classList.remove("effect-active");
+
+              ornaments.forEach((ornament) => {
+                ornament.isRainbow = false;
+                clearInterval(rainbowOrnamentIntervals[ornament.symbol]);
+              });
+
+              drawTree();
+            }
+        }
+
+        function initMatrixRain() {
+            const fontSize = 15;
+            const numColumns = treeCanvas.width / fontSize;
+            for (let i = 0; i < numColumns; i++) {
+                matrixColumns[i] = {
+                    y: Math.random() * treeCanvas.height,
+                    speed: Math.random() * 5 + 2,
+                    chars: []
+                };
+            }
+        }
+
+        function animateMatrixRain() {
+            if (!isMatrixRainActive) return;
+
+            treeCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            treeCtx.fillRect(0, 0, treeCanvas.width, treeCanvas.height);
+
+            const fontSize = 15;
+            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+            matrixColumns.forEach(column => {
+                // Add a new character to the column
+                if (Math.random() < 0.1 || column.chars.length === 0) {
+                    column.chars.push({
+                        char: characters.charAt(Math.floor(Math.random() * characters.length)),
+                        y: column.y,
+                        hue: Math.random() * 360
+                    });
+                }
+
+                column.chars.forEach((char, index) => {
+                    treeCtx.fillStyle = `hsl(${char.hue}, 100%, 50%)`;
+                    treeCtx.font = `${fontSize}px monospace`;
+                    treeCtx.fillText(char.char, matrixColumns.indexOf(column) * fontSize, char.y);
+
+                    // Move the character down
+                    char.y += column.speed;
+
+                    // Reset the character if it goes off screen
+                    if (char.y > treeCanvas.height) {
+                        column.chars.splice(index, 1);
+                    }
+                });
+
+                // Move the column down
+                column.y += column.speed;
+                if (column.y > treeCanvas.height && Math.random() < 0.01) {
+                    column.y = 0;
+                }
+            });
+        }
+
+        function toggleMatrixRain() {
+            const matrixRainButton = document.querySelector('button[onclick="toggleMatrixRain()"]');
+            isMatrixRainActive = !isMatrixRainActive;
+
+            if (isMatrixRainActive) {
+                matrixRainButton.classList.add('effect-active');
+                initMatrixRain();
+                drawTree();
+            } else {
+                matrixRainButton.classList.remove('effect-active');
+                matrixColumns.length = 0; // Clear the columns
+                treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height); // Clear the Matrix rain effect
+                drawTree(); // Redraw the tree
+            }
+        }
+
+        function toggleTreeSwaying() {
+            const swayButton = document.querySelector(
+              'button[onclick="toggleTreeSwaying()"]'
+            );
+            isSwaying = !isSwaying;
+            swayButton.classList.toggle("effect-active", isSwaying);
+
+            if (!isSwaying) {
+              // Reset sway angle
+              swayAngle = 0;
+              drawTree(); // Redraw the tree in its normal position
+            }
         }
 
         // Function to draw Santa
         function drawSanta() {
-          const xCenter = treeCanvas.width / 2;
-          const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
-          const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
-          const lineHeight = FONT_SIZE * 0.85;
+            if (isFlyingSanta) return; // Don't draw Santa if he's flying
 
-          for (let i = 0; i < santaData.length; i++) {
-            const row = santaData[i];
-            let x = xCenter - (row.length * FONT_SIZE / 4);
-            const y = yStart + i * lineHeight;
+            const xCenter = treeCanvas.width / 2;
+            const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
+            const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
+            const lineHeight = FONT_SIZE * 0.85;
 
-            for (let j = 0; j < row.length; j++) {
-              const char = row[j];
-              treeCtx.fillStyle = "white"; // Default color for Santa
+            for (let i = 0; i < santaAndReindeerData.length; i++) {
+              const row = santaAndReindeerData[i];
+              let x = xCenter - (row.length * FONT_SIZE / 4);
+              const y = yStart + i * lineHeight;
 
-              // Check for color mode effects
-              if (colorModeInterval) {
-                if (char === "." || char === "'") {
-                  treeCtx.fillStyle = colors["0"]; // Use color for '0'
-                } else if (
-                  char === "/" ||
-                  char === "\\" ||
-                  char === "|" ||
-                  char === "_"
-                ) {
-                  treeCtx.fillStyle = colors["1"]; // Use color for '1'
+              for (let j = 0; j < row.length; j++) {
+                const char = row[j];
+                treeCtx.fillStyle = "white"; // Default color for Santa
+
+                // Check for color mode effects
+                if (colorModeInterval) {
+                        if (
+                          char === "." ||
+                          char === "'" ||
+                          char === "o"
+                        ) {
+                          treeCtx.fillStyle = colors["0"]; // Use color for '0'
+                        } else if (
+                          char === "/" ||
+                          char === "\\" ||
+                          char === "|" ||
+                          char === "_" ||
+                          char === "`" ||
+                          char === "-" ||
+                          char === "^" ||
+                          char === "0"
+                        ) {
+                          treeCtx.fillStyle = colors["1"]; // Use color for '1'
+                        } else {
+                          treeCtx.fillStyle = colors["*"]; // Use color for '*'
+                        }
+                      } else {
+                        // Color specific parts of Santa
+                        if (char === "/" || char === "\\") {
+                          treeCtx.fillStyle = "#e74c3c"; // Red for hat and shoes
+                        } else if (char === "o") {
+                          treeCtx.fillStyle = "black"; // Black for eyes
+                        } else if (char === "." || char === "'") {
+                          treeCtx.fillStyle = "pink"; // Pink for cheeks
+                        } else if (char === "-" || char === "^" || char === "0") {
+                            treeCtx.fillStyle = "#e74c3c"; // Red
+                        } else if (
+                          char === "_" ||
+                          char === "`" ||
+                          char === "|"
+                        ) {
+                          treeCtx.fillStyle = "brown";
+                        }
+                      }
+                      
+                // Apply sparkle effect conditionally
+                if (isSparkleEffectActive && Math.random() > 0.5) {
+                    treeCtx.globalAlpha = Math.random(); // Varying opacity for sparkle
                 }
-              } else {
-                // Color specific parts of Santa
-                if (char === "/" || char === "\\") {
-                  treeCtx.fillStyle = "#e74c3c"; // Red for hat and shoes
-                } else if (char === "o") {
-                  treeCtx.fillStyle = "black"; // Black for eyes
-                } else if (char === "." || char === "'") {
-                  treeCtx.fillStyle = "pink"; // Pink for cheeks
-                }
-              }
 
-              if (char !== " ") {
-                treeCtx.fillText(char, x, y);
+                if (char !== " ") {
+                  treeCtx.fillText(char, x, y);
+                }
+                treeCtx.globalAlpha = 1; // Reset opacity
+                x += FONT_SIZE / 2;
               }
-              x += FONT_SIZE / 2;
             }
-          }
         }
 
         // Ornament placement
-        function generateSymbolButtons() {
+ function generateSymbolButtons() {
             availableSymbols.forEach(symbol => {
                 const symbolButton = document.createElement('div');
                 symbolButton.className = 'symbol-button';
@@ -739,7 +961,9 @@
                     colors['0'] = colors['0'] === '#2ecc71' ? '#27ae60' : '#2ecc71';
                     colors['1'] = colors['1'] === '#e74c3c' ? '#c0392b' : '#e74c3c';
                     drawTree();
-                    drawSanta();
+                    if (!isFlyingSanta) {
+                        drawSanta(); // Redraw Santa only if not in flying mode
+                    }
                 }, 500);
             } else {
                 lightButton.classList.remove('effect-active');
@@ -748,7 +972,9 @@
                 colors['0'] = '#2ecc71';
                 colors['1'] = '#e74c3c';
                 drawTree();
-                drawSanta();
+                if (!isFlyingSanta) {
+                    drawSanta(); // Redraw Santa only if not in flying mode
+                }
             }
         }
 
@@ -967,6 +1193,9 @@
                 colors['0'] = '#2ecc71';
                 colors['1'] = '#e74c3c';
                 drawTree();
+                if (!isFlyingSanta) {
+                    drawSanta();
+                }
             } else {
                 colorWaveButton.classList.add('effect-active');
                 colorWaveInterval = setInterval(() => {
@@ -975,8 +1204,127 @@
                     colors['0'] = `hsl(${hue0}, 100%, 50%)`;
                     colors['1'] = `hsl(${hue1}, 100%, 50%)`;
                     drawTree();
-                    drawSanta();
+                    if (!isFlyingSanta) {
+                        drawSanta();
+                    }
                 }, 100);
+            }
+        }
+
+        function drawSantaAndReindeer() {
+            const lineHeight = FONT_SIZE * 0.85;
+        
+            for (let i = 0; i < santaAndReindeerData.length; i++) {
+              const row = santaAndReindeerData[i];
+              const y = santaYSleigh + i * lineHeight;
+        
+              for (let j = 0; j < row.length; j++) {
+                const char = row[j];
+                const x = santaX + j * (FONT_SIZE / 2);
+        
+                treeCtx.fillStyle = "white"; // Default color
+                
+                // Check for color mode effects
+                if (colorModeInterval) {
+                  if (char === "." || char === "'" || char === "o") {
+                    treeCtx.fillStyle = colors["0"]; // Use color for '0'
+                  } else if (
+                    char === "/" ||
+                    char === "\\" ||
+                    char === "|" ||
+                    char === "_" ||
+                    char === "`" ||
+                    char === "-" ||
+                    char === "^" ||
+                    char === "0"
+                  ) {
+                    treeCtx.fillStyle = colors["1"]; // Use color for '1'
+                  } else {
+                    treeCtx.fillStyle = colors["*"]; // Use color for '*'
+                  }
+                } else {
+                  // Color specific parts
+                  if (char === "/" || char === "\\") {
+                    treeCtx.fillStyle = "#e74c3c"; // Red for certain parts
+                  } else if (char === "-") {
+                    treeCtx.fillStyle = "brown"; // Brown for reindeer body
+                  } else if (char === "." || char === "'" || char === "o") {
+                    treeCtx.fillStyle = "#e74c3c"; // Red for certain parts
+                  } else if (char === "-" || char === "^" || char === "0") {
+                    treeCtx.fillStyle = "#e74c3c"; // Red
+                  } else if (char === "_" || char === "`" || char === "|") {
+                    treeCtx.fillStyle = "brown";
+                  }
+                }
+
+                if (char !== " ") {
+                    // Apply sparkle effect conditionally
+                    if (isSparkleEffectActive && Math.random() > 0.8) {
+                        treeCtx.globalAlpha = Math.random();
+                    }
+                  treeCtx.fillText(char, x, y);
+                }
+                treeCtx.globalAlpha = 1;
+              }
+            }
+        }
+        
+        function animateSanta() {
+            if (santaAnimationInterval) {
+              clearInterval(santaAnimationInterval);
+            }
+        
+            santaAnimationInterval = setInterval(() => {
+              treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+              drawTree();
+            //   drawSanta();
+        
+              // Draw Santa and Reindeer
+              drawSantaAndReindeer();
+        
+              // Move Santa across the screen
+              santaX += sleighSpeed;
+        
+              // Animate reindeer legs (using a different approach)
+              const legMovement = Math.sin(Date.now() * 0.1) > 0 ? "||" : "//";
+              santaAndReindeerData[9] =
+                "   |  / \\  |                    " +
+                legMovement +
+                "    " +
+                legMovement +
+                "     ";
+              santaAndReindeerData[10] =
+                "   |  \\ /  |                    " +
+                legMovement +
+                "    " +
+                legMovement +
+                "     ";
+        
+              // Reset if Santa goes off-screen
+              if (santaX > treeCanvas.width + 500) {
+                santaX = -500;
+              }
+            }, 50);
+        }
+        
+        // Function to toggle the Flying Santa animation
+        function toggleFlyingSanta() {
+            const santaButton = document.querySelector(
+              'button[onclick="toggleFlyingSanta()"]'
+            );
+            isFlyingSanta = !isFlyingSanta;
+        
+            if (isFlyingSanta) {
+              santaButton.classList.add("effect-active");
+              santaX = -500; // Reset to start position
+              santaYSleigh = 50;
+              animateSanta();
+            } else {
+              santaButton.classList.remove("effect-active");
+              clearInterval(santaAnimationInterval);
+              santaAnimationInterval = null;
+              drawTree();
+              drawSanta(); // Draw stationary Santa when not flying
             }
         }
 
@@ -1019,6 +1367,22 @@
             // Reset color mode
             colorModeSelect.value = 'none';
             startAutoColorMode();
+
+            if (isMatrixRainActive) {
+              toggleMatrixRain();
+            }
+
+            if (isTreeSwaying) {
+              toggleTreeSwaying();
+            }
+
+            if (isFlyingSanta) {
+              toggleFlyingSanta();
+            }
+
+            if (Object.keys(rainbowOrnamentIntervals).length > 0) {
+              toggleRainbowOrnaments();
+            }
             
             // Remove all ornaments
             ornaments.length = 0;
