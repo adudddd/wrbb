@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Magical Christmas Binary Tree</title>
     <style>
-       body {
+        body {
             margin: 0;
             overflow: hidden;
             background: linear-gradient(to bottom, #000428, #004e92);
@@ -148,7 +147,8 @@
             color: #ddd;
             min-height: 20px;
         }
-@keyframes ornamentDance {
+        
+        @keyframes ornamentDance {
             0%, 100% { transform: rotate(0deg); }
             25% { transform: rotate(-10deg); }
             75% { transform: rotate(10deg); }
@@ -222,6 +222,7 @@
             visibility: visible;
             opacity: 1;
         }
+        
         #controls .control-section:nth-child(3) {
           display: grid;
           grid-template-columns: repeat(2, 1fr); /* Two columns grid */
@@ -232,13 +233,139 @@
           width: auto; /* Adjust width as needed */
           margin: 0; /* Remove default margin */
         }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .light {
+            animation: blink 1s infinite;
+            font-size: 12px;
+        }
+
+        #snowman {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 150px;
+            z-index: 1;
+        }
+
+        .snowman-body {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            left: 20px;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .snowman-head {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            left: 30px;
+            bottom: 50px;
+        }
+
+        .snowman-eye {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: black;
+            border-radius: 50%;
+        }
+
+        .snowman-eye.left {
+            top: 15px;
+            left: 10px;
+        }
+
+        .snowman-eye.right {
+            top: 15px;
+            right: 10px;
+        }
+
+        .snowman-nose {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid orange;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .snowman-button {
+            width: 8px;
+            height: 8px;
+            background-color: black;
+            border-radius: 50%;
+            margin-top: 5px;
+        }
+
+        .snowman-scarf {
+            position: absolute;
+            width: 45px;
+            height: 8px;
+            background-color: red;
+            bottom: 45px;
+            left: 28px;
+            border-radius: 4px;
+        }
+
+        .snowman-hat {
+            position: absolute;
+            width: 40px;
+            height: 30px;
+            background-color: black;
+            bottom: 80px;
+            left: 30px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .snowman-hat:before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 10px;
+            background-color: black;
+            bottom: 0;
+            left: -10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
-
 <body>
     <canvas id="treeCanvas"></canvas>
     <canvas id="snowCanvas"></canvas>
     <canvas id="glitterCanvas"></canvas>
+    <div id="snowman">
+        <div class="snowman-hat"></div>
+        <div class="snowman-head">
+            <div class="snowman-eye left"></div>
+            <div class="snowman-eye right"></div>
+            <div class="snowman-nose"></div>
+        </div>
+        <div class="snowman-scarf"></div>
+        <div class="snowman-body">
+            <div class="snowman-button"></div>
+            <div class="snowman-button"></div>
+            <div class="snowman-button"></div>
+        </div>
+    </div>
     <audio id="christmasAudio" loop>
         <source src="YOUR_CHRISTMAS_MUSIC_URL" type="audio/mpeg">
         Your browser does not support the audio element.
@@ -365,6 +492,7 @@
         let matrixColumns = [];
         let swayAngle = 0;
         let isSwaying = false;
+        let snowmanLightIntervals = [];
 
         // Flying Santa variables
         const santaAndReindeerData = [
@@ -792,7 +920,7 @@
 
               for (let j = 0; j < row.length; j++) {
                 const char = row[j];
-                treeCtx.fillStyle = "white"; // Default color for Santa
+                                treeCtx.fillStyle = "white"; // Default color for Santa
 
                 // Check for color mode effects
                 if (colorModeInterval) {
@@ -1540,8 +1668,48 @@
                 }, 50);
             }
         };
+
+         function placeSnowmanLights() {
+            const snowmanBody = document.querySelector('.snowman-body');
+            const lightColors = ['red', 'green', 'blue', 'yellow', 'purple'];
+            const lightPositions = [
+                { x: -15, y: 30 },
+                { x: 65, y: 30 },
+                { x: -10, y: 0 },
+                { x: 60, y: 0 },
+                { x: -5, y: -30 },
+                { x: 55, y: -30 }
+            ];
+
+            lightPositions.forEach((pos, index) => {
+                const light = document.createElement('div');
+                light.classList.add('light');
+                light.style.position = 'absolute';
+                light.style.left = `${pos.x}px`;
+                light.style.top = `${pos.y}px`;
+                light.style.color = lightColors[index % lightColors.length];
+                light.textContent = '•';
+                snowmanBody.appendChild(light);
+            });
+        }
+
+        function toggleSnowmanLights() {
+            snowmanLightIntervals.forEach(clearInterval);
+            snowmanLightIntervals = [];
+
+            const lights = document.querySelectorAll('.light');
+            lights.forEach((light, index) => {
+                const interval = setInterval(() => {
+                    light.style.color = light.style.color ? '' : ['red', 'green', 'blue', 'yellow', 'purple'][index % 5];
+                }, 500);
+                snowmanLightIntervals.push(interval);
+            });
+        }
+
         // Initialize the application
         init();
+        placeSnowmanLights();
+        toggleSnowmanLights();
     </script>
 </body>
 </html>
