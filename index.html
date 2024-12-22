@@ -175,28 +175,7 @@
             background-color: rgba(255,255,255,0.4);
         }
 
-        #musicPlayer {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background-color: rgba(255,255,255,0.2);
-            padding: 10px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        #musicPlayer button {
-            margin-right: 10px;
-        }
-
-        #sound-control {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-       .tooltip {
+        .tooltip {
             position: relative;
             display: inline-block;
         }
@@ -346,18 +325,6 @@
             left: -10px;
             border-radius: 5px;
         }
-       .animal {
-            position: absolute;
-            font-size: 30px;
-            cursor: pointer;
-            opacity: 0.8;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-
-        .animal:hover {
-            transform: scale(1.2);
-            opacity: 1;
-        }
 
         .tree-effect {
             position: absolute;
@@ -428,10 +395,6 @@
         </div>
     </div>
     <div id="panda"></div>
-    <audio id="christmasAudio" loop>
-        <source src="YOUR_CHRISTMAS_MUSIC_URL" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
     <audio id="ornamentSound" src="YOUR_ORNAMENT_SOUND_URL"></audio>
     <audio id="presentSound" src="YOUR_PRESENT_SOUND_URL"></audio>
     <audio id="easterEggSound" src="YOUR_EASTER_EGG_SOUND_URL"></audio>
@@ -536,13 +499,6 @@
             
         </div>
     </div>
-     <div id="musicPlayer">
-        <button onclick="toggleMusic()">Play Music</button>
-        <div id="sound-control">
-            <label for="volumeSlider">Volume:</label>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
-        </div>
-    </div>
     <div class="easter-egg" onclick="activateEasterEgg()">
         🎄 Find the Easter Egg!
     </div>
@@ -591,11 +547,6 @@
         let isFlyingSanta = false;
         let santaAnimationInterval = null;
         const sleighSpeed = 2; // Adjust for faster/slower movement
-        
-        // Animals variables
-        const animals = ['🐻', '🦊', '🐼', '🐨', '🦁', '🐰', '🦝', '🦉'];
-        let activeAnimals = [];
-        const animalSounds = {};
 
         // Canvas setup
         const treeCanvas = document.getElementById('treeCanvas');
@@ -612,8 +563,6 @@
         const presentBox = document.getElementById('presentBox');
         const symbolControls = document.getElementById('symbolControls');
         const decorationInfo = document.getElementById('decorationInfo');
-        const musicPlayer = document.getElementById('christmasAudio');
-        const volumeSlider = document.getElementById('volumeSlider');
         const ornamentSound = document.getElementById('ornamentSound');
         const presentSound = document.getElementById('presentSound');
         const easterEggSound = document.getElementById('easterEggSound');
@@ -698,12 +647,6 @@
             if (!isFlyingSanta) {
               drawSanta(); // Only draw stationary Santa if flying animation is not active
             }
-            
-            // Reposition animals
-            activeAnimals.forEach(animal => {
-                animal.element.style.left = `${animal.x}px`;
-                animal.element.style.top = `${animal.y}px`;
-            });
         }
 
         // Color picker initialization
@@ -921,13 +864,12 @@
                 ornament.isRainbow = false;
                 clearInterval(rainbowOrnamentIntervals[ornament.symbol]);
               });
-  });
 
               drawTree();
               drawPanda();
             }
         }
-        }
+
         function initMatrixRain() {
             const fontSize = 15;
             const numColumns = treeCanvas.width / fontSize;
@@ -975,7 +917,7 @@
 
                 // Move the column down
                 column.y += column.speed;
-                if (column.y > treeCanvas.height && Math.random() < 0.01) {
+                               if (column.y > treeCanvas.height && Math.random() < 0.01) {
                     column.y = 0;
                 }
             });
@@ -1010,7 +952,6 @@
               drawTree(); // Redraw the tree in its normal position
             }
         }
-        
 
         // Function to draw Santa
         function drawSanta() {
@@ -1643,22 +1584,6 @@
                 symbolInfo[Math.floor(Math.random() * symbolInfo.length)];
         });
 
-        // Music Player Functions
-        function toggleMusic() {
-            if (musicPlayer.paused) {
-                musicPlayer.play();
-                document.querySelector('#musicPlayer button').textContent = 'Pause Music';
-            } else {
-                musicPlayer.pause();
-                document.querySelector('#musicPlayer button').textContent = 'Play Music';
-            }
-        }
-
-        // Volume Control
-        volumeSlider.addEventListener('input', () => {
-            musicPlayer.volume = volumeSlider.value;
-        });
-
         // Initial setup
         function init() {
             generateSymbolButtons();
@@ -1820,78 +1745,6 @@
                 snowmanLightIntervals.push(interval);
             });
         }
-        
-        // Function to add animals to the scene
-        function addAnimal(animal) {
-            const animalElement = document.createElement('div');
-            animalElement.classList.add('animal');
-            animalElement.textContent = animal;
-            document.body.appendChild(animalElement);
-
-            // Random position within the viewport
-            const x = Math.random() * (window.innerWidth - 50);
-            const y = Math.random() * (window.innerHeight - 50);
-
-            animalElement.style.left = `${x}px`;
-            animalElement.style.top = `${y}px`;
-
-            // Store animal data
-            const animalData = { element: animalElement, x, y, symbol: animal };
-            activeAnimals.push(animalData);
-
-            // Animal click event
-            animalElement.addEventListener('click', () => {
-                playAnimalSound(animal);
-                animateAnimal(animalData);
-            });
-        }
-
-        // Function to play animal sound
-        function playAnimalSound(animal) {
-            const sound = animalSounds[animal];
-            if (sound) {
-                sound.currentTime = 0;
-                sound.play();
-            }
-        }
-
-        // Function to animate animal movement
-        
-            function animateAnimal(animalData) {
-            const { element, x, y, symbol } = animalData;
-            const newX = x + (Math.random() - 0.5) * 50;
-            const newY = y + (Math.random() - 0.5) * 50;
-
-            // Update animal position
-            element.style.left = `${newX}px`;
-            element.style.top = `${newY}px`;
-            animalData.x = newX;
-            animalData.y = newY;
-
-            // Optional: Add a CSS class for animation
-            element.classList.add('animal-move');
-            setTimeout(() => {
-                element.classList.remove('animal-move');
-            }, 1000);
-        }
-
-        // Function to initialize animal sounds
-        function initAnimalSounds() {
-            animals.forEach(animal => {
-                // Create an audio element for each animal
-                const sound = new Audio(`path/to/${animal}.mp3`); // Replace with actual path
-                animalSounds[animal] = sound;
-            });
-        }
-
-        // Function to randomly add animals to the scene
-        function addRandomAnimals() {
-            const numAnimals = Math.floor(Math.random() * 3) + 1; // 1 to 3 animals
-            for (let i = 0; i < numAnimals; i++) {
-                const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
-                addAnimal(randomAnimal);
-            }
-        }
 
         // Function to create a firework
         function createFirework() {
@@ -1971,7 +1824,7 @@
             const panda = document.getElementById('panda');
             panda.innerHTML = ''; // Clear previous content
 
-            const lineHeight = FONT_SIZE * 0.6; // Smaller line height for the panda
+            const lineHeight = FONT_SIZE * .6; // Smaller line height for the panda
             const charSize = FONT_SIZE / 2.5 ; // Smaller character size for the panda
 
             for (let i = 0; i < pandaData.length; i++) {
