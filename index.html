@@ -812,59 +812,58 @@
         }
 
         // Tree drawing function
-      function drawTree() {
-    treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
-    const xCenter = treeCanvas.width / 2;
-    const yStart = CANVAS_PADDING;
-    const lineHeight = FONT_SIZE * 1.2;
-    const nodeRadius = FONT_SIZE / 3; // Radius for tree nodes
+        function drawTree() {
+            treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+            const xCenter = treeCanvas.width / 2;
+            const yStart = CANVAS_PADDING;
+            const lineHeight = FONT_SIZE * 1.2;
+            const nodeRadius = FONT_SIZE / 3; // Radius for tree nodes
 
-    if (isMatrixRainActive) {
-        animateMatrixRain(); // Draw Matrix rain behind the tree
-    } else {
-        treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
-    }
-
-    if (isSwaying) {
-        swayAngle = Math.sin(Date.now() * 0.01) * 0.05;
-    } else {
-        swayAngle = 0;
-    }
-
-    // Draw the tree with swaying effect
-    for (let i = 0; i < treeData.length; i++) {
-        const row = treeData[i];
-        const y = yStart + i * lineHeight;
-
-        for (let j = 0; j < row.length; j++) {
-            const char = row[j];
-            if (char !== ' ') {
-                // Apply color modes
-                if (colorModeInterval) {
-                    if (char === "0") {
-                        treeCtx.fillStyle = colors["0"];
-                    } else if (char === "1") {
-                        treeCtx.fillStyle = colors["1"];
-                    } else if (char === "*") {
-                        treeCtx.fillStyle = colors["*"];
-                    }
-                } else {
-                    treeCtx.fillStyle = colors[char] || "white";
-                }
-
-                // Calculate sway offset
-                const swayOffset = Math.sin(j * 0.5 + swayAngle) * FONT_SIZE * (i / treeData.length);
-                const x = xCenter - (row.length * nodeRadius) + j * (nodeRadius * 2) + swayOffset;
-
-                // Draw a circle for each node
-                treeCtx.beginPath();
-                treeCtx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
-                treeCtx.fill();
+            if (isMatrixRainActive) {
+                animateMatrixRain(); // Draw Matrix rain behind the tree
+            } else {
+                treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
             }
-        }
-    }
-   
-          drawOrnaments();
+
+            if (isSwaying) {
+                swayAngle = Math.sin(Date.now() * 0.01) * 0.05;
+            } else {
+                swayAngle = 0;
+            }
+
+            // Draw the tree with swaying effect
+            for (let i = 0; i < treeData.length; i++) {
+                const row = treeData[i];
+                const y = yStart + i * lineHeight;
+
+                for (let j = 0; j < row.length; j++) {
+                    const char = row[j];
+                    if (char !== ' ') {
+                        // Apply color modes
+                        if (colorModeInterval) {
+                            if (char === "0") {
+                                treeCtx.fillStyle = colors["0"];
+                            } else if (char === "1") {
+                                treeCtx.fillStyle = colors["1"];
+                            } else if (char === "*") {
+                                treeCtx.fillStyle = colors["*"];
+                            }
+                        } else {
+                            treeCtx.fillStyle = colors[char] || "white";
+                        }
+
+                        // Calculate sway offset
+                        const swayOffset = Math.sin(j * 0.5 + swayAngle) * FONT_SIZE * (i / treeData.length);
+                        const x = xCenter - (row.length * nodeRadius) + j * (nodeRadius * 2) + swayOffset;
+
+                        // Draw a circle for each node
+                        treeCtx.beginPath();
+                        treeCtx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
+                        treeCtx.fill();
+                    }
+                }
+            }
+            drawOrnaments();
         }
 
         function drawOrnaments() {
@@ -1013,62 +1012,64 @@
         }
 
         // Function to draw Santa
-       function drawSanta() {
-    if (isFlyingSanta) return; // Don't draw Santa if he's flying
+        function drawSanta() {
+            if (isFlyingSanta) return; // Don't draw Santa if he's flying
 
-    const xCenter = treeCanvas.width / 2;
-    const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
-    const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
-    const lineHeight = FONT_SIZE * 0.85;
-    const charSize = FONT_SIZE / 2; // Size of each character block
+            const xCenter = treeCanvas.width / 2;
+            const treeBottom = CANVAS_PADDING + treeData.length * FONT_SIZE * 1.2;
+            const yStart = treeBottom + SANTA_Y_OFFSET; // Position Santa below the tree
+            const lineHeight = FONT_SIZE * 0.85;
+            const charSize = FONT_SIZE / 2; // Size of each character block
 
-    for (let i = 0; i < santaAndReindeerData.length; i++) {
-        const row = santaAndReindeerData[i];
-        let x = xCenter - (row.length * charSize / 2);
-        const y = yStart + i * lineHeight;
+            for (let i = 0; i < santaAndReindeerData.length; i++) {
+                const row = santaAndReindeerData[i];
+                let x = xCenter - (row.length * charSize / 2);
+                const y = yStart + i * lineHeight;
 
-        for (let j = 0; j < row.length; j++) {
-            const char = row[j];
-            treeCtx.fillStyle = "white"; // Default color for Santa
+                for (let j = 0; j < row.length; j++) {
+                    const char = row[j];
+                    treeCtx.fillStyle = "white"; // Default color for Santa
 
-            // Check for color mode effects
-            if (colorModeInterval) {
-                if (char === "." || char === "'" || char === "o") {
-                    treeCtx.fillStyle = colors["0"]; // Use color for '0'
-                } else if (char === "/" || char === "\\" || char === "|" || char === "_" || char === "`" || char === "-" || char === "^" || char === "0") {
-                    treeCtx.fillStyle = colors["1"]; // Use color for '1'
-                } else {
-                    treeCtx.fillStyle = colors["*"]; // Use color for '*'
+                    // Check for color mode effects
+                    if (colorModeInterval) {
+                        if (char === "." || char === "'" || char === "o") {
+                            treeCtx.fillStyle = colors["0"]; // Use color for '0'
+                        } else if (char === "/" || char === "\\" || char === "|" || char === "_" || char === "`" || char === "-" || char === "^" || char === "0") {
+                            treeCtx.fillStyle = colors["1"]; // Use color for '1'
+                        } else {
+                            treeCtx.fillStyle = colors["*"]; // Use color for '*'
+                        }
+                    } else {
+                        // Color specific parts of Santa
+                        if (char === "/" || char === "\\") {
+                            treeCtx.fillStyle = "#e74c3c"; // Red for hat and shoes
+                        } else if (char === "o") {
+                            treeCtx.fillStyle = "black"; // Black for eyes
+                        } else if (char === "." || char === "'") {
+                            treeCtx.fillStyle = "pink"; // Pink for cheeks
+                        } else if (char === "-" || char === "^" || char === "0") {
+                            treeCtx.fillStyle = "#e74c3c"; // Red
+                        } else if (char === "_" || char === "`" || char === "|") {
+                            treeCtx.fillStyle = "brown";
+                        }
+                    }
+
+                    // Apply sparkle effect conditionally
+                    if (isSparkleEffectActive && Math.random() > 0.5) {
+                        treeCtx.globalAlpha = Math.random(); // Varying opacity for sparkle
+                    }
+
+                    if (char !== " ") {
+                        // Draw a rectangle for each character
+                        treeCtx.fillRect(x, y, charSize, charSize);
+                    }
+                    treeCtx.globalAlpha = 1; // Reset opacity
+                    x += charSize;
                 }
-            } else {
-                // Color specific parts of Santa
-                if (char === "/" || char === "\\") {
-                    treeCtx.fillStyle = "#e74c3c"; // Red for hat and shoes
-                } else if (char === "o") {
-                    treeCtx.fillStyle = "black"; // Black for eyes
-                } else if (char === "." || char === "'") {
-                    treeCtx.fillStyle = "pink"; // Pink for cheeks
-                } else if (char === "-" || char === "^" || char === "0") {
-                    treeCtx.fillStyle = "#e74c3c"; // Red
-                } else if (char === "_" || char === "`" || char === "|") {
-                    treeCtx.fillStyle = "brown";
-                }
             }
-
-            // Apply sparkle effect conditionally
-            if (isSparkleEffectActive && Math.random() > 0.5) {
-                treeCtx.globalAlpha = Math.random(); // Varying opacity for sparkle
-            }
-
-            if (char !== " ") {
-                // Draw a rectangle for each character
-                treeCtx.fillRect(x, y, charSize, charSize);
-            }
-            treeCtx.globalAlpha = 1; // Reset opacity
-            x += charSize;
         }
-    }
-}        // Ornament placement
+
+        // Ornament placement
  function generateSymbolButtons() {
             availableSymbols.forEach(symbol => {
                 const symbolButton = document.createElement('div');
@@ -1093,20 +1094,23 @@
             const xCenter = treeCanvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
+            const nodeRadius = FONT_SIZE / 3;
 
             // Randomly place ornament on the tree
             const randomRow = Math.floor(Math.random() * treeData.length);
             const row = treeData[randomRow];
 
             // Find a random non-space position in the row
-            const validPositions = row.split('').reduce((acc, char, index) => {
-                if (char !== ' ' && char !== '*') acc.push(index);
-                return acc;
-            }, []);
+            const validPositions = [];
+            for (let i = 0; i < row.length; i++) {
+              if (row[i] !== " " && row[i] !== "*") {
+                validPositions.push(i);
+              }
+            }
 
             if (validPositions.length > 0) {
                 const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
-                const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
+                const x = xCenter - (row.length * nodeRadius) + randomPos * (nodeRadius * 2);
                 const y = yStart + randomRow * lineHeight;
 
                 ornaments.push({ x, y, symbol, rotation: 0 });
@@ -1214,20 +1218,23 @@
             const xCenter = treeCanvas.width / 2;
             const yStart = CANVAS_PADDING;
             const lineHeight = FONT_SIZE * 1.2;
+            const nodeRadius = FONT_SIZE / 3;
 
             const sparkleCount = 20;
             for (let i = 0; i < sparkleCount; i++) {
                 const randomRow = Math.floor(Math.random() * treeData.length);
                 const row = treeData[randomRow];
-
-                const validPositions = row.split('').reduce((acc, char, index) => {
-                    if (char !== ' ' && char !== '*') acc.push(index);
-                    return acc;
-                }, []);
+                
+                const validPositions = [];
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i] !== " " && row[i] !== "*") {
+                    validPositions.push(i);
+                  }
+                }
 
                 if (validPositions.length > 0) {
                     const randomPos = validPositions[Math.floor(Math.random() * validPositions.length)];
-                    const x = xCenter - (row.length * FONT_SIZE / 4) + randomPos * (FONT_SIZE / 2);
+                    const x = xCenter - (row.length * nodeRadius) + randomPos * (nodeRadius * 2);
                     const y = yStart + randomRow * lineHeight;
 
                     // Create a twinkling effect
@@ -1727,15 +1734,18 @@
                 const xCenter = treeCanvas.width / 2;
                 const yStart = CANVAS_PADDING;
                 const lineHeight = FONT_SIZE * 1.2;
+                const nodeRadius = FONT_SIZE / 3;
 
-                const starX = xCenter - (treeData[starRow].length * FONT_SIZE / 4) + starIndex * (FONT_SIZE / 2);
+                const starX = xCenter - (treeData[starRow].length * nodeRadius) + starIndex * (nodeRadius * 2);
                 const starY = yStart + starRow * lineHeight;
 
                 treeCtx.save();
                 treeCtx.shadowColor = 'gold';
                 treeCtx.shadowBlur = 20;
                 treeCtx.fillStyle = colors['*'];
-                treeCtx.fillText('*', starX, starY);
+                treeCtx.beginPath();
+                treeCtx.arc(starX, starY, nodeRadius, 0, 2 * Math.PI);
+                treeCtx.fill();
                 treeCtx.restore();
             }
         }
@@ -1960,33 +1970,35 @@
             const panda = document.getElementById('panda');
             panda.innerHTML = ''; // Clear previous content
 
-            const lineHeight = FONT_SIZE * 1;
+            const lineHeight = FONT_SIZE * 0.6; // Smaller line height for the panda
+            const charSize = FONT_SIZE / 2.5 ; // Smaller character size for the panda
 
             for (let i = 0; i < pandaData.length; i++) {
                 const row = pandaData[i];
-                const y = i * lineHeight;
+                const div = document.createElement('div'); // Create a div for each row
 
                 for (let j = 0; j < row.length; j++) {
                     const char = row[j];
+                    const span = document.createElement('span');
+                    span.style.fontSize = `${charSize}px`; // Set font size for each span
+
                     if (char !== ' ') {
-                        const span = document.createElement('span');
-                         if (colorModeInterval) {
-                           if (char === "0") {
-                             span.style.color = colors["0"];
-                           } else if (char === "1") {
-                             span.style.color = colors["1"];
-                           }
-                         } else {
-                           span.style.color = colors[char] || "white";
-                         }
-                        span.textContent = char;
-                        panda.appendChild(span);
+                        if (colorModeInterval) {
+                            if (char === "0") {
+                                span.style.color = colors["0"];
+                            } else if (char === "1") {
+                                span.style.color = colors["1"];
+                            }
+                        } else {
+                            span.style.color = colors[char] || "white";
+                        }
+                        span.textContent = '■'; // Use a block character or any other visible character
                     } else {
-                        // Add a non-breaking space for proper spacing
-                        panda.appendChild(document.createTextNode('\u00A0'));
+                        span.innerHTML = ' '; // Use non-breaking space for proper spacing
                     }
+                    div.appendChild(span);
                 }
-                panda.appendChild(document.createElement('br'));
+                panda.appendChild(div);
             }
         }
         // Initialize the application
