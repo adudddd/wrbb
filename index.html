@@ -346,6 +346,19 @@
             left: -10px;
             border-radius: 5px;
         }
+       .animal {
+            position: absolute;
+            font-size: 30px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .animal:hover {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+        
     </style>
 </head>
 <body>
@@ -517,6 +530,11 @@
         let isFlyingSanta = false;
         let santaAnimationInterval = null;
         const sleighSpeed = 2; // Adjust for faster/slower movement
+        
+        // Animals variables
+        const animals = ['🐻', '🦊', '🐼', '🐨', '🦁', '🐰', '🦝', '🦉'];
+        let activeAnimals = [];
+        const animalSounds = {};
 
         // Canvas setup
         const treeCanvas = document.getElementById('treeCanvas');
@@ -603,6 +621,12 @@
             if (!isFlyingSanta) {
               drawSanta(); // Only draw stationary Santa if flying animation is not active
             }
+            
+            // Reposition animals
+            activeAnimals.forEach(animal => {
+                animal.element.style.left = `${animal.x}px`;
+                animal.element.style.top = `${animal.y}px`;
+            });
         }
 
         // Color picker initialization
@@ -905,7 +929,7 @@
         }
 
         // Function to draw Santa
-        function drawSanta() {
+         function drawSanta() {
             if (isFlyingSanta) return; // Don't draw Santa if he's flying
 
             const xCenter = treeCanvas.width / 2;
@@ -1705,11 +1729,84 @@
                 snowmanLightIntervals.push(interval);
             });
         }
+        
+        // Function to add animals to the scene
+        function addAnimal(animal) {
+            const animalElement = document.createElement('div');
+            animalElement.classList.add('animal');
+            animalElement.textContent = animal;
+            document.body.appendChild(animalElement);
+
+            // Random position within the viewport
+            const x = Math.random() * (window.innerWidth - 50);
+            const y = Math.random() * (window.innerHeight - 50);
+
+            animalElement.style.left = `${x}px`;
+            animalElement.style.top = `${y}px`;
+
+            // Store animal data
+            const animalData = { element: animalElement, x, y, symbol: animal };
+            activeAnimals.push(animalData);
+
+            // Animal click event
+            animalElement.addEventListener('click', () => {
+                playAnimalSound(animal);
+                animateAnimal(animalData);
+            });
+        }
+
+        // Function to play animal sound
+        function playAnimalSound(animal) {
+            const sound = animalSounds[animal];
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play();
+            }
+        }
+
+        // Function to animate animal movement
+        function animateAnimal(animalData) {
+            const { element, x, y, symbol } = animalData;
+            const newX = x + (Math.random() - 0.5) * 50;
+            const newY = y + (Math.random() - 0.5) * 50;
+
+            // Update animal position
+            element.style.left = `${newX}px`;
+            element.style.top = `${newY}px`;
+            animalData.x = newX;
+            animalData.y = newY;
+
+            // Optional: Add a CSS class for animation
+            element.classList.add('animal-move');
+            setTimeout(() => {
+                element.classList.remove('animal-move');
+            }, 1000);
+        }
+
+        // Function to initialize animal sounds
+        function initAnimalSounds() {
+            animals.forEach(animal => {
+                // Create an audio element for each animal
+                const sound = new Audio(`path/to/${animal}.mp3`); // Replace with actual path
+                animalSounds[animal] = sound;
+            });
+        }
+
+        // Function to randomly add animals to the scene
+        function addRandomAnimals() {
+            const numAnimals = Math.floor(Math.random() * 3) + 1; // 1 to 3 animals
+            for (let i = 0; i < numAnimals; i++) {
+                const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+                addAnimal(randomAnimal);
+            }
+        }
 
         // Initialize the application
         init();
         placeSnowmanLights();
         toggleSnowmanLights();
+        initAnimalSounds();
+        addRandomAnimals();
     </script>
 </body>
 </html>
