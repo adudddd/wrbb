@@ -358,6 +358,54 @@
             transform: scale(1.2);
             opacity: 1;
         }
+
+        .tree-effect {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .firework {
+            font-size: 30px;
+            animation: explode 2s forwards;
+        }
+
+        @keyframes explode {
+            0% { opacity: 1; transform: scale(0); }
+            50% { transform: scale(1.5) translateY(-20px); }
+            100% { opacity: 0; transform: scale(2) translateY(-40px); }
+        }
+
+        .shooting-star {
+            width: 5px;
+            height: 5px;
+            background-color: white;
+            border-radius: 50%;
+            animation: shoot 3s linear forwards;
+        }
+
+        .shooting-star::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(to right, rgba(255,255,255,0.8), rgba(255,255,255,0));
+            transform: translateY(-50%);
+        }
+
+        @keyframes shoot {
+            0% { transform: translateX(0) translateY(0); opacity: 1; }
+            100% { transform: translateX(300px) translateY(-200px); opacity: 0; }
+        }
+
+        #panda {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 16px;
+            z-index: 1;
+        }
         
     </style>
 </head>
@@ -379,6 +427,7 @@
             <div class="snowman-button"></div>
         </div>
     </div>
+    <div id="panda"></div>
     <audio id="christmasAudio" loop>
         <source src="YOUR_CHRISTMAS_MUSIC_URL" type="audio/mpeg">
         Your browser does not support the audio element.
@@ -386,6 +435,7 @@
     <audio id="ornamentSound" src="YOUR_ORNAMENT_SOUND_URL"></audio>
     <audio id="presentSound" src="YOUR_PRESENT_SOUND_URL"></audio>
     <audio id="easterEggSound" src="YOUR_EASTER_EGG_SOUND_URL"></audio>
+    <audio id="fireworkSound" src="YOUR_FIREWORK_SOUND_URL"></audio>
     <div id="controls">
         <div class="control-section">
             <h3>🎨 Color Controls</h3>
@@ -470,6 +520,15 @@
                 <span class="tooltiptext">Starts Santa and his reindeer flying across the screen</span>
             </div>
             <div class="tooltip">
+                <button class="effect-button" onclick="toggleFireworks()">🎆 Fireworks</button>
+                <span class="tooltiptext">Activates a firework show</span>
+            </div>
+
+            <div class="tooltip">
+                <button class="effect-button" onclick="toggleShootingStars()">🌠 Shooting Stars</button>
+                <span class="tooltiptext">Triggers shooting stars across the sky</span>
+            </div>
+            <div class="tooltip">
                 <button class="effect-button" onclick="resetAllEffects()">🔄 Reset Effects</button>
                 <span class="tooltiptext">Resets all effects to their default state</span>
             </div>
@@ -506,6 +565,8 @@
         let swayAngle = 0;
         let isSwaying = false;
         let snowmanLightIntervals = [];
+        let isFireworksActive = false;
+        let isShootingStarsActive = false;
 
         // Flying Santa variables
         const santaAndReindeerData = [
@@ -556,6 +617,7 @@
         const ornamentSound = document.getElementById('ornamentSound');
         const presentSound = document.getElementById('presentSound');
         const easterEggSound = document.getElementById('easterEggSound');
+        const fireworkSound = document.getElementById("fireworkSound");
 
         // Binary Christmas Tree pattern with star
         const treeData = [
@@ -571,6 +633,20 @@
             "0101010101010101010101010101",
             "       101",
             "       101"
+        ];
+
+        // Panda data
+        const pandaData = [
+            "   111  111   ",
+            " 1000110001 ",
+            " 1010110101 ",
+            "  111111111  ",
+            "   1111111   ",
+            "   1011101   ",
+            "  101111101  ",
+            " 10111111101 ",
+            "1001111111001",
+            "   111  111   ",
         ];
 
         // Initial color settings
@@ -618,6 +694,7 @@
             treeCanvas.height = snowCanvas.height = glitterCanvas.height = window.innerHeight;
             setupCanvas();
             drawTree();
+            drawPanda();
             if (!isFlyingSanta) {
               drawSanta(); // Only draw stationary Santa if flying animation is not active
             }
@@ -637,6 +714,7 @@
             zeroColorPicker.addEventListener('change', () => {
                 colors['0'] = zeroColorPicker.value;
                 drawTree();
+                drawPanda();
                 if (!isFlyingSanta) {
                     drawSanta(); // Redraw Santa only if not in flying mode
                   }
@@ -645,6 +723,7 @@
             oneColorPicker.addEventListener('change', () => {
                 colors['1'] = oneColorPicker.value;
                 drawTree();
+                drawPanda();
                 if (!isFlyingSanta) {
                     drawSanta(); // Redraw Santa only if not in flying mode
                   }
@@ -686,6 +765,7 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
+            drawPanda();
             if (!isFlyingSanta) {
                 drawSanta(); // Redraw Santa only if not in flying mode
             }
@@ -698,6 +778,7 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
+            drawPanda();
             if (!isFlyingSanta) {
                 drawSanta(); // Redraw Santa only if not in flying mode
             }
@@ -711,6 +792,7 @@
             oneColorPicker.value = colors['1'];
             colorPhase += 0.5;
             drawTree();
+            drawPanda();
             if (!isFlyingSanta) {
                 drawSanta(); // Redraw Santa only if not in flying mode
             }
@@ -723,6 +805,7 @@
             zeroColorPicker.value = colors['0'];
             oneColorPicker.value = colors['1'];
             drawTree();
+            drawPanda();
             if (!isFlyingSanta) {
                 drawSanta(); // Redraw Santa only if not in flying mode
             }
@@ -831,6 +914,7 @@
                 rainbowOrnamentIntervals[ornament.symbol] = setInterval(() => {
                   ornament.hue = (ornament.hue + 5) % 360;
                   drawTree();
+                  drawPanda();
                 }, 100);
               });
             } else {
@@ -840,8 +924,10 @@
                 ornament.isRainbow = false;
                 clearInterval(rainbowOrnamentIntervals[ornament.symbol]);
               });
+  });
 
               drawTree();
+              drawPanda();
             }
         }
 
@@ -929,7 +1015,7 @@
         }
 
         // Function to draw Santa
-         function drawSanta() {
+        function drawSanta() {
             if (isFlyingSanta) return; // Don't draw Santa if he's flying
 
             const xCenter = treeCanvas.width / 2;
@@ -1110,6 +1196,7 @@
                     colors['0'] = colors['0'] === '#2ecc71' ? '#27ae60' : '#2ecc71';
                     colors['1'] = colors['1'] === '#e74c3c' ? '#c0392b' : '#e74c3c';
                     drawTree();
+                    drawPanda();
                     if (!isFlyingSanta) {
                         drawSanta(); // Redraw Santa only if not in flying mode
                     }
@@ -1121,6 +1208,7 @@
                 colors['0'] = '#2ecc71';
                 colors['1'] = '#e74c3c';
                 drawTree();
+                drawPanda();
                 if (!isFlyingSanta) {
                     drawSanta(); // Redraw Santa only if not in flying mode
                 }
@@ -1342,6 +1430,7 @@
                 colors['0'] = '#2ecc71';
                 colors['1'] = '#e74c3c';
                 drawTree();
+                drawPanda();
                 if (!isFlyingSanta) {
                     drawSanta();
                 }
@@ -1353,6 +1442,7 @@
                     colors['0'] = `hsl(${hue0}, 100%, 50%)`;
                     colors['1'] = `hsl(${hue1}, 100%, 50%)`;
                     drawTree();
+                    drawPanda();
                     if (!isFlyingSanta) {
                         drawSanta();
                     }
@@ -1532,12 +1622,21 @@
             if (Object.keys(rainbowOrnamentIntervals).length > 0) {
               toggleRainbowOrnaments();
             }
+
+            if (isFireworksActive) {
+                toggleFireworks();
+            }
+
+            if (isShootingStarsActive) {
+                toggleShootingStars();
+            }
             
             // Remove all ornaments
             ornaments.length = 0;
             usedSymbols.clear();
             decorationInfo.textContent = 'All effects reset! Click symbols to place them on the tree.';
             drawTree();
+            drawPanda();
             drawSanta();
         }
 
@@ -1765,7 +1864,8 @@
         }
 
         // Function to animate animal movement
-        function animateAnimal(animalData) {
+        
+            function animateAnimal(animalData) {
             const { element, x, y, symbol } = animalData;
             const newX = x + (Math.random() - 0.5) * 50;
             const newY = y + (Math.random() - 0.5) * 50;
@@ -1801,6 +1901,113 @@
             }
         }
 
+        // Function to create a firework
+        function createFirework() {
+            const firework = document.createElement('div');
+            firework.classList.add('tree-effect', 'firework');
+            firework.textContent = '🎆';
+
+            // Position the firework randomly within the canvas area
+            const x = Math.random() * (treeCanvas.width - 50) + 25; // Centered more
+            const y = Math.random() * (treeCanvas.height / 2) + treeCanvas.height / 4; // Between 25% and 75% of the height
+            firework.style.left = `${x}px`;
+            firework.style.top = `${y}px`;
+
+            document.body.appendChild(firework);
+            fireworkSound.play();
+            // Remove the firework after the animation
+            setTimeout(() => {
+                document.body.removeChild(firework);
+            }, 2000);
+        }
+
+        // Function to toggle fireworks
+        function toggleFireworks() {
+            const fireworkButton = document.querySelector('button[onclick="toggleFireworks()"]');
+            isFireworksActive = !isFireworksActive;
+
+            if (isFireworksActive) {
+                fireworkButton.classList.add('effect-active');
+                // Create multiple fireworks
+                const numFireworks = Math.floor(Math.random() * 5) + 3; // 3 to 7 fireworks
+                for (let i = 0; i < numFireworks; i++) {
+                    setTimeout(createFirework, i * 500); // Stagger the fireworks
+                }
+            } else {
+                fireworkButton.classList.remove('effect-active');
+            }
+        }
+
+        // Function to create a shooting star
+        function createShootingStar() {
+            const shootingStar = document.createElement('div');
+            shootingStar.classList.add('tree-effect', 'shooting-star');
+
+            // Position the shooting star at the top of the canvas, outside the visible area
+            const x = Math.random() * treeCanvas.width;
+            const y = -20; // Start above the canvas
+            shootingStar.style.left = `${x}px`;
+            shootingStar.style.top = `${y}px`;
+
+            document.body.appendChild(shootingStar);
+
+            // Remove the shooting star after the animation
+            setTimeout(() => {
+                document.body.removeChild(shootingStar);
+            }, 3000);
+        }
+
+        // Function to toggle shooting stars
+        function toggleShootingStars() {
+            const shootingStarButton = document.querySelector('button[onclick="toggleShootingStars()"]');
+            isShootingStarsActive = !isShootingStarsActive;
+
+            if (isShootingStarsActive) {
+                shootingStarButton.classList.add('effect-active');
+                // Create multiple shooting stars
+                const numShootingStars = Math.floor(Math.random() * 5) + 3; // 3 to 7 shooting stars
+                for (let i = 0; i < numShootingStars; i++) {
+                    setTimeout(createShootingStar, i * 500); // Stagger the shooting stars
+                }
+            } else {
+                shootingStarButton.classList.remove('effect-active');
+            }
+        }
+
+        // Function to draw the panda
+        function drawPanda() {
+            const panda = document.getElementById('panda');
+            panda.innerHTML = ''; // Clear previous content
+
+            const lineHeight = FONT_SIZE * 1;
+
+            for (let i = 0; i < pandaData.length; i++) {
+                const row = pandaData[i];
+                const y = i * lineHeight;
+
+                for (let j = 0; j < row.length; j++) {
+                    const char = row[j];
+                    if (char !== ' ') {
+                        const span = document.createElement('span');
+                         if (colorModeInterval) {
+                           if (char === "0") {
+                             span.style.color = colors["0"];
+                           } else if (char === "1") {
+                             span.style.color = colors["1"];
+                           }
+                         } else {
+                           span.style.color = colors[char] || "white";
+                         }
+                        span.textContent = char;
+                        panda.appendChild(span);
+                    } else {
+                        // Add a non-breaking space for proper spacing
+                        panda.appendChild(document.createTextNode('\u00A0'));
+                    }
+                }
+                panda.appendChild(document.createElement('br'));
+            }
+        }
         // Initialize the application
         init();
         placeSnowmanLights();
